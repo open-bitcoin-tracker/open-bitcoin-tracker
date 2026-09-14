@@ -65,7 +65,7 @@ class DetailSection extends StatelessWidget {
   }
 }
 
-/// "Worth back then" rows — shared by per-stack and total detail screens.
+/// Past-value rows — shared by per-stack and total detail screens.
 class PastValuesSection extends StatefulWidget {
   const PastValuesSection({
     super.key,
@@ -122,22 +122,11 @@ class _PastValuesSectionState extends State<PastValuesSection> {
         needsToggle ? allRows.skip(_kDefaultRows).toList() : <_PastRow>[];
 
     return DetailSection(
-      verticalPadding: AppSpacing.lg,
+      verticalPadding: AppSpacing.xs,
       bottomPadding: AppSpacing.sm,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: Text(
-              l10n.stackDetailWorthBackThen,
-              style: AppTypography.body.copyWith(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: cs.onSurfaceVariant,
-              ),
-            ),
-          ),
           for (var i = 0; i < alwaysRows.length; i++) ...[
             if (i > 0) const DetailRowDivider(),
             DetailValueRow(

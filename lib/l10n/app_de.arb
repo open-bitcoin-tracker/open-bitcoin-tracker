@@ -185,7 +185,6 @@
   "currencyLabelJpy": "Japanischer Yen",
   "converterModeBtcFiat": "Fiat - BTC",
   "converterModeBtcSats": "Sats - BTC",
-  "stackDetailWorthBackThen": "Damaliger Wert",
   "stackDetailYearAgo": "{count, plural, =1{Vor 1 Jahr} other{Vor {count} Jahren}}",
   "stackDetailWhenBtcReaches": "Wenn BTC erreicht",
   "stackDetailWillBeWorth": "Dieser Stack wird wert sein",

@@ -185,7 +185,6 @@
   "currencyLabelJpy": "Японская иена",
   "converterModeBtcFiat": "Фиат - BTC",
   "converterModeBtcSats": "Sats - BTC",
-  "stackDetailWorthBackThen": "Стоимость тогда",
   "stackDetailYearAgo": "{count, plural, =1{1 год назад} few{{count} года назад} other{{count} лет назад}}",
   "stackDetailWhenBtcReaches": "Когда BTC достигнет",
   "stackDetailWillBeWorth": "Этот stack будет стоить",

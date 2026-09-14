@@ -808,13 +808,9 @@
   "@converterModeBtcSats": {
     "description": "Label for the segmented toggle option that switches the converter into BTC ↔ sats unit-conversion mode."
   },
-  "stackDetailWorthBackThen": "Worth back then",
-  "@stackDetailWorthBackThen": {
-    "description": "Section title on the stack detail screen above the table of past values (what the stack was worth 1 year ago, 2 years ago, etc.)."
-  },
   "stackDetailYearAgo": "{count, plural, =1{1 year ago} other{{count} years ago}}",
   "@stackDetailYearAgo": {
-    "description": "Row label in the 'Worth back then' table. count is the number of years ago (1, 2, 3…).",
+    "description": "Row label in the past-values table on the stack detail screen. count is the number of years ago (1, 2, 3…).",
     "placeholders": {
       "count": {
         "type": "int",

@@ -185,7 +185,6 @@
   "currencyLabelJpy": "日本円",
   "converterModeBtcFiat": "法定通貨 - BTC",
   "converterModeBtcSats": "Sats - BTC",
-  "stackDetailWorthBackThen": "当時の価値",
   "stackDetailYearAgo": "{count}年前",
   "stackDetailWhenBtcReaches": "BTCが達したとき",
   "stackDetailWillBeWorth": "このstackの価値",

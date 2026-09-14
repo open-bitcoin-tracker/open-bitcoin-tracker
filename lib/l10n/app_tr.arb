@@ -185,7 +185,6 @@
   "currencyLabelJpy": "Japon Yeni",
   "converterModeBtcFiat": "Fiat - BTC",
   "converterModeBtcSats": "Sats - BTC",
-  "stackDetailWorthBackThen": "O zamanki değeri",
   "stackDetailYearAgo": "{count, plural, =1{1 yıl önce} other{{count} yıl önce}}",
   "stackDetailWhenBtcReaches": "BTC ulaştığında",
   "stackDetailWillBeWorth": "Bu stack değeri olacak",

@@ -76,9 +76,8 @@ class _CropStackImageScreenState extends State<CropStackImageScreen> {
           interactive: true,
           baseColor: cs.surfaceContainerLow,
           maskColor: Colors.black.withValues(alpha: 0.5),
-          cornerDotBuilder: (size, edgeAlignment) => DotControl(
-            color: context.palette.bitcoinOrange,
-          ),
+          cornerDotBuilder: (size, edgeAlignment) =>
+              DotControl(color: context.palette.bitcoinOrange),
           onCropped: (result) {
             if (!mounted) return;
             switch (result) {

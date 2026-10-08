@@ -111,10 +111,7 @@ class AddStackIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CircularIconButton(
-      icon: const Icon(Icons.add),
-      onTap: onTap,
-    );
+    return CircularIconButton(icon: const Icon(Icons.add), onTap: onTap);
   }
 }
 
@@ -149,8 +146,15 @@ class StacksOverflowButton extends StatelessWidget {
       color: cs.onSurface.withValues(alpha: 0.38),
     );
 
-    Widget row(IconData icon, String label, {Widget? trailing, bool enabled = true}) {
-      final fg = enabled ? cs.onSurfaceVariant : cs.onSurfaceVariant.withValues(alpha: 0.38);
+    Widget row(
+      IconData icon,
+      String label, {
+      Widget? trailing,
+      bool enabled = true,
+    }) {
+      final fg = enabled
+          ? cs.onSurfaceVariant
+          : cs.onSurfaceVariant.withValues(alpha: 0.38);
       return MenuItemRow(
         icon: Icon(icon, size: 22, color: fg),
         label: label,
@@ -316,7 +320,6 @@ enum _OverflowAction {
   about,
 }
 
-
 class OverflowButton extends StatefulWidget {
   const OverflowButton({super.key, this.onOpenConverter});
 
@@ -408,87 +411,103 @@ class _OverflowButtonState extends State<OverflowButton> {
       width: 36,
       height: 36,
       child: PopupMenuButton<_OverflowAction>(
-      onOpened: AppHaptics.light,
-      onSelected: (action) => _handleAction(context, action),
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 48),
-      popUpAnimationStyle: const AnimationStyle(
-        duration: Duration(milliseconds: 120),
-      ),
-      offset: const Offset(0, 56),
-      color: cs.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLarge),
-      ),
-      icon: const Icon(Icons.more_vert),
-      iconSize: 22,
-      style: IconButton.styleFrom(
-        backgroundColor: Colors.transparent,
-        foregroundColor: cs.onSurfaceVariant,
-        elevation: 0,
-        fixedSize: const Size(36, 36),
-        minimumSize: const Size(36, 36),
-        maximumSize: const Size(36, 36),
-        shape: const CircleBorder(),
+        onOpened: AppHaptics.light,
+        onSelected: (action) => _handleAction(context, action),
         padding: EdgeInsets.zero,
-      ),
-      itemBuilder: (ctx) => [
-        if (widget.onOpenConverter != null)
-          PopupMenuItem(
-            value: _OverflowAction.converter,
-            child: MenuItemRow(
-              icon: Transform.flip(
-                flipX: true,
-                child: Icon(Icons.swap_vert, size: 22, color: cs.onSurfaceVariant),
+        constraints: const BoxConstraints(minWidth: 48),
+        popUpAnimationStyle: const AnimationStyle(
+          duration: Duration(milliseconds: 120),
+        ),
+        offset: const Offset(0, 56),
+        color: cs.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLarge),
+        ),
+        icon: const Icon(Icons.more_vert),
+        iconSize: 22,
+        style: IconButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          foregroundColor: cs.onSurfaceVariant,
+          elevation: 0,
+          fixedSize: const Size(36, 36),
+          minimumSize: const Size(36, 36),
+          maximumSize: const Size(36, 36),
+          shape: const CircleBorder(),
+          padding: EdgeInsets.zero,
+        ),
+        itemBuilder: (ctx) => [
+          if (widget.onOpenConverter != null)
+            PopupMenuItem(
+              value: _OverflowAction.converter,
+              child: MenuItemRow(
+                icon: Transform.flip(
+                  flipX: true,
+                  child: Icon(
+                    Icons.swap_vert,
+                    size: 22,
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+                label: l10n.homeConverter,
+                style: itemStyle,
               ),
-              label: l10n.homeConverter,
+            ),
+          PopupMenuItem(
+            value: _OverflowAction.theme,
+            child: MenuItemRow(
+              icon: Icon(
+                Icons.palette_outlined,
+                size: 22,
+                color: cs.onSurfaceVariant,
+              ),
+              label: l10n.settingsThemeLabel,
               style: itemStyle,
             ),
           ),
-        PopupMenuItem(
-          value: _OverflowAction.theme,
-          child: MenuItemRow(
-            icon: Icon(Icons.palette_outlined, size: 22, color: cs.onSurfaceVariant),
-            label: l10n.settingsThemeLabel,
-            style: itemStyle,
-          ),
-        ),
-        PopupMenuItem(
-          value: _OverflowAction.currency,
-          child: MenuItemRow(
-            // The attach_money glyph carries extra right bearing in the font
-            // box, so geometric centering leaves it sitting left of center.
-            // Nudge it right a hair to optically center it.
-            icon: Transform.translate(
-              offset: const Offset(1, 0),
-              child: Icon(Icons.attach_money, size: 22, color: cs.onSurfaceVariant),
+          PopupMenuItem(
+            value: _OverflowAction.currency,
+            child: MenuItemRow(
+              // The attach_money glyph carries extra right bearing in the font
+              // box, so geometric centering leaves it sitting left of center.
+              // Nudge it right a hair to optically center it.
+              icon: Transform.translate(
+                offset: const Offset(1, 0),
+                child: Icon(
+                  Icons.attach_money,
+                  size: 22,
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
+              label: l10n.settingsCurrencies,
+              style: itemStyle,
             ),
-            label: l10n.settingsCurrencies,
-            style: itemStyle,
           ),
-        ),
-        PopupMenuItem(
-          enabled: false,
-          padding: EdgeInsets.zero,
-          child: bitcoinUnitToggleRow(),
-        ),
-        PopupMenuItem(
-          value: _OverflowAction.language,
-          child: MenuItemRow(
-            icon: Icon(Icons.language, size: 22, color: cs.onSurfaceVariant),
-            label: l10n.settingsLanguageLabel,
-            style: itemStyle,
+          PopupMenuItem(
+            enabled: false,
+            padding: EdgeInsets.zero,
+            child: bitcoinUnitToggleRow(),
           ),
-        ),
-        PopupMenuItem(
-          value: _OverflowAction.about,
-          child: MenuItemRow(
-            icon: Icon(Icons.info_outline, size: 22, color: cs.onSurfaceVariant),
-            label: l10n.settingsAbout,
-            style: itemStyle,
+          PopupMenuItem(
+            value: _OverflowAction.language,
+            child: MenuItemRow(
+              icon: Icon(Icons.language, size: 22, color: cs.onSurfaceVariant),
+              label: l10n.settingsLanguageLabel,
+              style: itemStyle,
+            ),
           ),
-        ),
-      ],
+          PopupMenuItem(
+            value: _OverflowAction.about,
+            child: MenuItemRow(
+              icon: Icon(
+                Icons.info_outline,
+                size: 22,
+                color: cs.onSurfaceVariant,
+              ),
+              label: l10n.settingsAbout,
+              style: itemStyle,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -654,7 +673,10 @@ Future<LanguagePref?> _showLanguagePicker(
             children: [
               Text(
                 l10n.languagePickerTitle,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 12),
               ConstrainedBox(

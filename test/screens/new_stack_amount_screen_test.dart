@@ -1,3 +1,4 @@
+import '../support/test_viewport.dart';
 import 'dart:io';
 
 import 'package:open_bitcoin_tracker/api/api.dart';
@@ -16,23 +17,34 @@ import 'package:http/testing.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<(Widget, AppStateNotifier)> _wrap(WidgetTester tester, {String? initialState}) async {
-  await tester.binding.setSurfaceSize(const Size(800, 1200));
-  addTearDown(() => tester.binding.setSurfaceSize(null));
-  SharedPreferences.setMockInitialValues(
-    initialState == null ? const {} : {'btc_tracker': initialState},
-  );
+Future<(Widget, AppStateNotifier)> _wrap(
+  WidgetTester tester, {
+  String? initialState,
+}) async {
+  setTestViewport(tester, const Size(800, 1200));
+  SharedPreferences.setMockInitialValues({
+    'btc_tracker': initialState ?? '{"bitcoinDisplayMode":"sats"}',
+  });
   final prefs = await SharedPreferences.getInstance();
   final appNotifier = AppStateNotifier(AppStateRepository(prefs));
   final noopHttp = MockClient((_) async => http.Response('', 500));
   final stream = KrakenStreamService();
   final ohlc = KrakenOhlcClient(httpClient: noopHttp);
   final cache = BtcRatesCache(prefs);
-  final historyCache = BtcHistoryCache(directory: Directory.systemTemp.createTempSync('bt_test_'));
+  final historyCache = BtcHistoryCache(
+    directory: Directory.systemTemp.createTempSync('bt_test_'),
+  );
   final widget = MultiProvider(
     providers: [
       ChangeNotifierProvider.value(value: appNotifier),
-      ChangeNotifierProvider(create: (_) => LivePriceController(stream: stream, ohlc: ohlc, cache: cache, historyCache: historyCache)),
+      ChangeNotifierProvider(
+        create: (_) => LivePriceController(
+          stream: stream,
+          ohlc: ohlc,
+          cache: cache,
+          historyCache: historyCache,
+        ),
+      ),
     ],
     child: MaterialApp(
       home: const NewStackAmountScreen(),
@@ -54,10 +66,12 @@ Future<(Widget, AppStateNotifier)> _wrap(WidgetTester tester, {String? initialSt
 // can place the caret per-glyph; join them back into a single string for
 // assertion. Excludes the '₿' symbol Text which is a sibling in the Row.
 String _amountText(WidgetTester t) => t
-    .widgetList<Text>(find.descendant(
-      of: find.byType(SatsInputDisplay),
-      matching: find.byType(Text),
-    ))
+    .widgetList<Text>(
+      find.descendant(
+        of: find.byType(SatsInputDisplay),
+        matching: find.byType(Text),
+      ),
+    )
     .map((w) => w.data ?? '')
     .where((s) => s != '₿')
     .join();
@@ -65,7 +79,9 @@ String _amountText(WidgetTester t) => t
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('confirm advances to name step with the entered amount', (tester) async {
+  testWidgets('confirm advances to name step with the entered amount', (
+    tester,
+  ) async {
     final (w, app) = await _wrap(tester);
     await tester.pumpWidget(w);
 
@@ -120,5 +136,4 @@ void main() {
 
     expect(app.stacks, isEmpty);
   });
-
 }

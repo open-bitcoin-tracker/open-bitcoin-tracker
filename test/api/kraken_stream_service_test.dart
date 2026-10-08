@@ -10,9 +10,9 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 class _FakeChannel extends StreamChannelMixin<dynamic>
     implements WebSocketChannel {
   _FakeChannel()
-      : _incoming = StreamController<dynamic>.broadcast(),
-        _outgoing = StreamController<dynamic>(),
-        _ready = Completer<void>()..complete();
+    : _incoming = StreamController<dynamic>.broadcast(),
+      _outgoing = StreamController<dynamic>(),
+      _ready = Completer<void>()..complete();
 
   final StreamController<dynamic> _incoming;
   final StreamController<dynamic> _outgoing;
@@ -88,32 +88,29 @@ String _tickerUpdate({String symbol = 'BTC/USD', double last = 50000.0}) =>
       'channel': 'ticker',
       'type': 'update',
       'data': [
-        {
-          'symbol': symbol,
-          'last': last,
-        },
+        {'symbol': symbol, 'last': last},
       ],
     });
 
 void main() {
   group('KrakenStreamService', () {
-    test('sends a v2 subscribe message with all 7 BTC pairs on start', () async {
-      final channel = _FakeChannel();
-      final svc = KrakenStreamService(channelFactory: (_) => channel);
-      addTearDown(svc.dispose);
+    test(
+      'sends a v2 subscribe message with all 7 BTC pairs on start',
+      () async {
+        final channel = _FakeChannel();
+        final svc = KrakenStreamService(channelFactory: (_) => channel);
+        addTearDown(svc.dispose);
 
-      svc.start();
+        svc.start();
 
-      final firstSent = await channel.sentMessages.first;
-      final decoded = jsonDecode(firstSent as String) as Map<String, dynamic>;
-      expect(decoded['method'], 'subscribe');
-      final params = decoded['params'] as Map<String, dynamic>;
-      expect(params['channel'], 'ticker');
-      expect(
-        params['symbol'],
-        equals(KrakenStreamService.pairs),
-      );
-    });
+        final firstSent = await channel.sentMessages.first;
+        final decoded = jsonDecode(firstSent as String) as Map<String, dynamic>;
+        expect(decoded['method'], 'subscribe');
+        final params = decoded['params'] as Map<String, dynamic>;
+        expect(params['channel'], 'ticker');
+        expect(params['symbol'], equals(KrakenStreamService.pairs));
+      },
+    );
 
     test('parses ticker updates into KrakenTick events', () async {
       final channel = _FakeChannel();
@@ -152,7 +149,9 @@ void main() {
       addTearDown(sub.cancel);
 
       channel.emit(jsonEncode({'channel': 'heartbeat'}));
-      channel.emit(jsonEncode({'channel': 'status', 'type': 'update', 'data': []}));
+      channel.emit(
+        jsonEncode({'channel': 'status', 'type': 'update', 'data': []}),
+      );
       channel.emit(jsonEncode({'channel': 'ticker', 'type': 'subscribe'}));
 
       await Future<void>.delayed(Duration.zero);
@@ -162,11 +161,13 @@ void main() {
     test('reconnects with backoff after the channel closes', () {
       fakeAsync((async) {
         final channels = <_FakeChannel>[];
-        final svc = KrakenStreamService(channelFactory: (_) {
-          final c = _FakeChannel();
-          channels.add(c);
-          return c;
-        });
+        final svc = KrakenStreamService(
+          channelFactory: (_) {
+            final c = _FakeChannel();
+            channels.add(c);
+            return c;
+          },
+        );
 
         svc.start();
         async.flushMicrotasks();
@@ -203,11 +204,13 @@ void main() {
     test('stop() cancels reconnect timers and prevents new connections', () {
       fakeAsync((async) {
         final channels = <_FakeChannel>[];
-        final svc = KrakenStreamService(channelFactory: (_) {
-          final c = _FakeChannel();
-          channels.add(c);
-          return c;
-        });
+        final svc = KrakenStreamService(
+          channelFactory: (_) {
+            final c = _FakeChannel();
+            channels.add(c);
+            return c;
+          },
+        );
         svc.start();
         async.flushMicrotasks();
         channels[0].closeFromServer();

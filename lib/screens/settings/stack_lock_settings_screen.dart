@@ -56,7 +56,9 @@ Future<void> showStackLockSettingsSheet(BuildContext context) {
                       bottom: isOn ? AppSpacing.md : AppSpacing.xs,
                     ),
                     child: Text(
-                      isOn ? l10n.settingsLockStacksTitle : l10n.settingsLockStacksSetupTitle,
+                      isOn
+                          ? l10n.settingsLockStacksTitle
+                          : l10n.settingsLockStacksSetupTitle,
                       style: AppTypography.label.copyWith(
                         fontSize: 18,
                         color: cs.onSurface,
@@ -82,18 +84,18 @@ Future<void> showStackLockSettingsSheet(BuildContext context) {
                     ),
                     SettingsGroup(
                       children: [
-                        for (final m in StacksAuthMode.values
-                            .where((m) => m != StacksAuthMode.off))
+                        for (final m in StacksAuthMode.values.where(
+                          (m) => m != StacksAuthMode.off,
+                        ))
                           AuthModeRow(
                             key: ValueKey('stacksAuthMode-${m.code}'),
                             mode: m,
-                            onTap: () => StacksSettingsActions.selectMode(
-                                ctx, app, m),
+                            onTap: () =>
+                                StacksSettingsActions.selectMode(ctx, app, m),
                           ),
                       ],
                     ),
-                  ]
-                  else ...[
+                  ] else ...[
                     SettingsGroup(
                       children: [
                         SettingsActionTile(
@@ -115,15 +117,13 @@ Future<void> showStackLockSettingsSheet(BuildContext context) {
                         if (mode == StacksAuthMode.pin)
                           SettingsActionTile(
                             label: l10n.settingsChangePin,
-                            onTap: () =>
-                                StacksSettingsActions.changePin(ctx),
+                            onTap: () => StacksSettingsActions.changePin(ctx),
                           ),
                         SettingsPickerTile(
                           label: l10n.settingsRelockAfter,
-                          value:
-                              lockTimeoutLabel(l10n, app.stacksLockTimeout),
-                          onTap: () => StacksSettingsActions.openTimeoutPicker(
-                              ctx, app),
+                          value: lockTimeoutLabel(l10n, app.stacksLockTimeout),
+                          onTap: () =>
+                              StacksSettingsActions.openTimeoutPicker(ctx, app),
                         ),
                       ],
                     ),

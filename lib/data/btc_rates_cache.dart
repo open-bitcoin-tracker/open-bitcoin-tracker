@@ -24,14 +24,14 @@ class BtcRates {
   final double? chf;
 
   double? forCurrency(Currency c) => switch (c) {
-        Currency.usd => usd,
-        Currency.gbp => gbp,
-        Currency.eur => eur,
-        Currency.jpy => jpy,
-        Currency.cad => cad,
-        Currency.aud => aud,
-        Currency.chf => chf,
-      };
+    Currency.usd => usd,
+    Currency.gbp => gbp,
+    Currency.eur => eur,
+    Currency.jpy => jpy,
+    Currency.cad => cad,
+    Currency.aud => aud,
+    Currency.chf => chf,
+  };
 
   // Standard `?? this.field` copyWith: can update a field but not reset it to
   // null. That's fine for the tick-merge path, which only ever sets a new
@@ -44,36 +44,35 @@ class BtcRates {
     double? cad,
     double? aud,
     double? chf,
-  }) =>
-      BtcRates(
-        usd: usd ?? this.usd,
-        gbp: gbp ?? this.gbp,
-        eur: eur ?? this.eur,
-        jpy: jpy ?? this.jpy,
-        cad: cad ?? this.cad,
-        aud: aud ?? this.aud,
-        chf: chf ?? this.chf,
-      );
+  }) => BtcRates(
+    usd: usd ?? this.usd,
+    gbp: gbp ?? this.gbp,
+    eur: eur ?? this.eur,
+    jpy: jpy ?? this.jpy,
+    cad: cad ?? this.cad,
+    aud: aud ?? this.aud,
+    chf: chf ?? this.chf,
+  );
 
   Map<String, dynamic> toJson() => {
-        if (usd != null) 'USD': usd,
-        if (gbp != null) 'GBP': gbp,
-        if (eur != null) 'EUR': eur,
-        if (jpy != null) 'JPY': jpy,
-        if (cad != null) 'CAD': cad,
-        if (aud != null) 'AUD': aud,
-        if (chf != null) 'CHF': chf,
-      };
+    if (usd != null) 'USD': usd,
+    if (gbp != null) 'GBP': gbp,
+    if (eur != null) 'EUR': eur,
+    if (jpy != null) 'JPY': jpy,
+    if (cad != null) 'CAD': cad,
+    if (aud != null) 'AUD': aud,
+    if (chf != null) 'CHF': chf,
+  };
 
   factory BtcRates.fromJson(Map<String, dynamic> json) => BtcRates(
-        usd: (json['USD'] as num?)?.toDouble(),
-        gbp: (json['GBP'] as num?)?.toDouble(),
-        eur: (json['EUR'] as num?)?.toDouble(),
-        jpy: (json['JPY'] as num?)?.toDouble(),
-        cad: (json['CAD'] as num?)?.toDouble(),
-        aud: (json['AUD'] as num?)?.toDouble(),
-        chf: (json['CHF'] as num?)?.toDouble(),
-      );
+    usd: (json['USD'] as num?)?.toDouble(),
+    gbp: (json['GBP'] as num?)?.toDouble(),
+    eur: (json['EUR'] as num?)?.toDouble(),
+    jpy: (json['JPY'] as num?)?.toDouble(),
+    cad: (json['CAD'] as num?)?.toDouble(),
+    aud: (json['AUD'] as num?)?.toDouble(),
+    chf: (json['CHF'] as num?)?.toDouble(),
+  );
 }
 
 class BtcRatesCache {

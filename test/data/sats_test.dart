@@ -41,10 +41,7 @@ void main() {
 
     test('caps fractional digits at 8', () {
       expect(Sats.tryInsertBtcChar('0.12345678', 10, '9'), isNull);
-      expect(
-        Sats.tryInsertBtcChar('0.1234567', 9, '8'),
-        ('0.12345678', 10),
-      );
+      expect(Sats.tryInsertBtcChar('0.1234567', 9, '8'), ('0.12345678', 10));
     });
 
     test('rejects values past the 21M supply', () {
@@ -53,10 +50,7 @@ void main() {
     });
 
     test('accepts the exact 21M cap', () {
-      expect(
-        Sats.tryInsertBtcChar('2100000', 7, '0'),
-        ('21000000', 8),
-      );
+      expect(Sats.tryInsertBtcChar('2100000', 7, '0'), ('21000000', 8));
     });
 
     test('blocks a leading 0 on a non-zero integer part', () {

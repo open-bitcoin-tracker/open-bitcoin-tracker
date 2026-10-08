@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../data/app_enums.dart';
 import 'api_config.dart';
 import 'price_data.dart';
+import 'ohlc_window.dart';
 
 /// Talks to Kraken's `/0/public/OHLC` REST endpoint and returns the close
 /// price of each candle in BTC/USD. Up to 720 candles per response.
@@ -17,8 +18,8 @@ import 'price_data.dart';
 /// `result` so we don't have to track that.
 class KrakenOhlcClient {
   KrakenOhlcClient({http.Client? httpClient, ApiConfig? config})
-      : _http = httpClient ?? http.Client(),
-        _config = config ?? const ApiConfig();
+    : _http = httpClient ?? http.Client(),
+      _config = config ?? const ApiConfig();
 
   final http.Client _http;
   final ApiConfig _config;
@@ -39,18 +40,18 @@ class KrakenOhlcClient {
   /// collapse onto the same ~2.5-day window. 15-min candles put 7 days
   /// (7 × 96 = 672 candles) comfortably under the cap.
   Future<List<HistoryPoint>?> intraday(BtcRange range) {
-    final days = range.days;
-    if (days != null) {
-      return _fetch(intervalMinutes: 15, takeLast: days * 96);
+    final window = OhlcWindow.forRange(range);
+    if (window != null) {
+      return _fetch(
+        intervalMinutes: window.intervalMinutes,
+        takeLast: window.takeLast,
+      );
     }
-    final weeks = range.weeks;
-    if (weeks != null) {
-      return _fetch(intervalMinutes: 60, takeLast: weeks * 168);
-    }
-    if (range == BtcRange.m1) {
-      return _fetch(intervalMinutes: 60);
-    }
-    throw ArgumentError.value(range, 'range', 'intraday only supports day, week, and m1 ranges');
+    throw ArgumentError.value(
+      range,
+      'range',
+      'intraday only supports day, week, and m1 ranges',
+    );
   }
 
   /// Daily candles. Kraken returns up to 720 days (~2y); deeper history is
@@ -69,8 +70,9 @@ class KrakenOhlcClient {
       'interval': '$intervalMinutes',
       if (sinceSeconds != null) 'since': '$sinceSeconds',
     };
-    final uri =
-        Uri.parse('https://api.kraken.com/0/public/OHLC').replace(queryParameters: params);
+    final uri = Uri.parse(
+      'https://api.kraken.com/0/public/OHLC',
+    ).replace(queryParameters: params);
     try {
       final res = await _http.get(uri).timeout(_config.requestTimeout);
       if (res.statusCode != 200) {

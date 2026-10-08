@@ -1,10 +1,12 @@
+import '../support/test_viewport.dart';
 import 'dart:io';
 
 import 'package:open_bitcoin_tracker/api/api.dart';
 import 'package:open_bitcoin_tracker/data/data.dart';
 import 'package:open_bitcoin_tracker/l10n/generated/app_localizations.dart';
 import 'package:open_bitcoin_tracker/screens/edit_stack_screens.dart';
-import 'package:open_bitcoin_tracker/widgets/number_pad.dart' show numberPadKey, kNumberPadConfirmKey;
+import 'package:open_bitcoin_tracker/widgets/number_pad.dart'
+    show numberPadKey, kNumberPadConfirmKey;
 import 'package:open_bitcoin_tracker/widgets/sats_input/sats_input_display.dart';
 import 'package:open_bitcoin_tracker/state/state.dart';
 import 'package:open_bitcoin_tracker/theme/theme.dart';
@@ -16,9 +18,11 @@ import 'package:http/testing.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<(Widget, AppStateNotifier)> _wrap(WidgetTester tester, {required String initialState}) async {
-  await tester.binding.setSurfaceSize(const Size(800, 1200));
-  addTearDown(() => tester.binding.setSurfaceSize(null));
+Future<(Widget, AppStateNotifier)> _wrap(
+  WidgetTester tester, {
+  required String initialState,
+}) async {
+  setTestViewport(tester, const Size(800, 1200));
   SharedPreferences.setMockInitialValues({'btc_tracker': initialState});
   final prefs = await SharedPreferences.getInstance();
   final app = AppStateNotifier(AppStateRepository(prefs));
@@ -31,12 +35,21 @@ Future<(Widget, AppStateNotifier)> _wrap(WidgetTester tester, {required String i
   final stream = KrakenStreamService();
   final ohlc = KrakenOhlcClient(httpClient: noopHttp);
   final cache = BtcRatesCache(prefs);
-  final historyCache = BtcHistoryCache(directory: Directory.systemTemp.createTempSync('bt_test_'));
+  final historyCache = BtcHistoryCache(
+    directory: Directory.systemTemp.createTempSync('bt_test_'),
+  );
   final widget = MultiProvider(
     providers: [
       ChangeNotifierProvider.value(value: app),
       ChangeNotifierProvider.value(value: lock),
-      ChangeNotifierProvider(create: (_) => LivePriceController(stream: stream, ohlc: ohlc, cache: cache, historyCache: historyCache)),
+      ChangeNotifierProvider(
+        create: (_) => LivePriceController(
+          stream: stream,
+          ohlc: ohlc,
+          cache: cache,
+          historyCache: historyCache,
+        ),
+      ),
     ],
     child: MaterialApp(
       home: const EditStackAmountScreen(stackId: 's1'),
@@ -58,10 +71,12 @@ Future<(Widget, AppStateNotifier)> _wrap(WidgetTester tester, {required String i
 // can place the caret per-glyph; join them back into a single string for
 // assertion. Excludes the '₿' symbol Text which is a sibling in the Row.
 String _amountText(WidgetTester t) => t
-    .widgetList<Text>(find.descendant(
-      of: find.byType(SatsInputDisplay),
-      matching: find.byType(Text),
-    ))
+    .widgetList<Text>(
+      find.descendant(
+        of: find.byType(SatsInputDisplay),
+        matching: find.byType(Text),
+      ),
+    )
     .map((w) => w.data ?? '')
     .where((s) => s != '₿')
     .join();
@@ -72,7 +87,8 @@ void main() {
   testWidgets('prefills input with existing sats', (tester) async {
     final (w, _) = await _wrap(
       tester,
-      initialState: '{"stacks":[{"id":"s1","name":"A","sats":12345}]}',
+      initialState:
+          '{"bitcoinDisplayMode":"sats","stacks":[{"id":"s1","name":"A","sats":12345}]}',
     );
     await tester.pumpWidget(w);
     await tester.pump();
@@ -83,7 +99,8 @@ void main() {
   testWidgets('confirm updates sats without changing name', (tester) async {
     final (w, app) = await _wrap(
       tester,
-      initialState: '{"stacks":[{"id":"s1","name":"Cold","sats":1000}]}',
+      initialState:
+          '{"bitcoinDisplayMode":"sats","stacks":[{"id":"s1","name":"Cold","sats":1000}]}',
     );
     await tester.pumpWidget(w);
     await tester.pump();
@@ -106,7 +123,8 @@ void main() {
   testWidgets('cancel discards edits', (tester) async {
     final (w, app) = await _wrap(
       tester,
-      initialState: '{"stacks":[{"id":"s1","name":"A","sats":500}]}',
+      initialState:
+          '{"bitcoinDisplayMode":"sats","stacks":[{"id":"s1","name":"A","sats":500}]}',
     );
     await tester.pumpWidget(w);
     await tester.pump();

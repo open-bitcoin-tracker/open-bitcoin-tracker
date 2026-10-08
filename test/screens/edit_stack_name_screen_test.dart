@@ -11,8 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<(Widget, AppStateNotifier)> _wrap({required String stackId}) async {
   SharedPreferences.setMockInitialValues(const {
-    'btc_tracker':
-        '{"stacks":[{"id":"s1","name":"Cold","sats":100}]}',
+    'btc_tracker': '{"stacks":[{"id":"s1","name":"Cold","sats":100}]}',
   });
   final prefs = await SharedPreferences.getInstance();
   final app = AppStateNotifier(AppStateRepository(prefs));
@@ -60,38 +59,42 @@ void main() {
     final (_, app) = await _wrap(stackId: 's1');
     final lock = StacksLockController(app: app);
     addTearDown(lock.dispose);
-    await tester.pumpWidget(MaterialApp(
-      theme: AppThemes.light(),
-      locale: const Locale('en', 'GB'),
-      supportedLocales: const [Locale('en', 'GB'), Locale('es', 'ES')],
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      home: Navigator(
-        onGenerateRoute: (_) => MaterialPageRoute<void>(
-          builder: (_) => MultiProvider(
-            providers: [
-              ChangeNotifierProvider.value(value: app),
-              ChangeNotifierProvider.value(value: lock),
-            ],
-            child: const EditStackNameScreen(stackId: 's1'),
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppThemes.light(),
+        locale: const Locale('en', 'GB'),
+        supportedLocales: const [Locale('en', 'GB'), Locale('es', 'ES')],
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        home: Navigator(
+          onGenerateRoute: (_) => MaterialPageRoute<void>(
+            builder: (_) => MultiProvider(
+              providers: [
+                ChangeNotifierProvider.value(value: app),
+                ChangeNotifierProvider.value(value: lock),
+              ],
+              child: const EditStackNameScreen(stackId: 's1'),
+            ),
           ),
         ),
       ),
-    ));
+    );
     await tester.pump();
 
     await tester.enterText(find.byType(TextField), '  Warm wallet  ');
-    await tester.tap(find.text('Change name'));
+    await tester.tap(find.text('Save'));
     await tester.pump();
 
     expect(app.stacks.single.name, 'Warm wallet');
   });
 
-  testWidgets('confirm is disabled when input is empty after trim', (tester) async {
+  testWidgets('confirm is disabled when input is empty after trim', (
+    tester,
+  ) async {
     final (w, app) = await _wrap(stackId: 's1');
     await tester.pumpWidget(w);
     await tester.pump();
@@ -99,7 +102,7 @@ void main() {
     await tester.enterText(find.byType(TextField), '   ');
     await tester.pump();
 
-    await tester.tap(find.text('Change name'));
+    await tester.tap(find.text('Save'));
     await tester.pump();
 
     expect(app.stacks.single.name, 'Cold');
@@ -113,7 +116,9 @@ void main() {
     await tester.enterText(find.byType(TextField), 'x' * 24);
     await tester.pump(const Duration(milliseconds: 200));
 
-    final opacity = tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity));
+    final opacity = tester.widget<AnimatedOpacity>(
+      find.byType(AnimatedOpacity),
+    );
     expect(opacity.opacity, 1.0);
   });
 

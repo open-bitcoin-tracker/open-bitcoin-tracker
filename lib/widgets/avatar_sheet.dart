@@ -78,33 +78,34 @@ Future<void> showAvatarSheet(
                   ),
                   const SizedBox(height: AppSpacing.lg),
                 ],
-              _AvatarSectionLabel(l10n.stackImageSectionLabel),
-              const SizedBox(height: AppSpacing.sm),
-              MenuActionGroup(
-                children: [
-                  MenuActionTile(
-                    leading: const Icon(Icons.photo_library_outlined),
-                    label: hasImage
-                        ? l10n.stackImageChangeFromGallery
-                        : l10n.stackImageChooseFromGallery,
-                    onTap: () => Navigator.of(ctx)
-                        .pop(_AvatarSheetAction.pickFromGallery),
-                  ),
-                  if (hasImage)
+                _AvatarSectionLabel(l10n.stackImageSectionLabel),
+                const SizedBox(height: AppSpacing.sm),
+                MenuActionGroup(
+                  children: [
                     MenuActionTile(
-                      leading: const Icon(Icons.delete_outline),
-                      label: l10n.stackImageRemove,
-                      destructive: true,
-                      onTap: () =>
-                          Navigator.of(ctx).pop(_AvatarSheetAction.remove),
+                      leading: const Icon(Icons.photo_library_outlined),
+                      label: hasImage
+                          ? l10n.stackImageChangeFromGallery
+                          : l10n.stackImageChooseFromGallery,
+                      onTap: () => Navigator.of(
+                        ctx,
+                      ).pop(_AvatarSheetAction.pickFromGallery),
                     ),
-                ],
-              ),
-            ],
+                    if (hasImage)
+                      MenuActionTile(
+                        leading: const Icon(Icons.delete_outline),
+                        label: l10n.stackImageRemove,
+                        destructive: true,
+                        onTap: () =>
+                            Navigator.of(ctx).pop(_AvatarSheetAction.remove),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
     },
   );
   if (!context.mounted) return;
@@ -127,9 +128,9 @@ Future<void> showAvatarSheet(
       } on StackImagePickFailure {
         if (!context.mounted) return;
         final l10n = AppLocalizations.of(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.stackImagePickFailed)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.stackImagePickFailed)));
       }
     case _AvatarSheetAction.remove:
       onImageCleared();

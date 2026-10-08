@@ -20,7 +20,6 @@ import '../edit_stack_screens.dart';
 import 'future_value_slider.dart';
 import 'stack_detail_shared.dart';
 
-
 /// Per-stack detail view: what the stack was worth at past dates and an
 /// interactive "what if BTC reaches X" projection. Opened by tapping a stack
 /// card on the home screen.
@@ -50,13 +49,17 @@ class _StackDetailScreenState extends State<StackDetailScreen> {
   Future<void> _handleAction(_StackAction action, model.Stack stack) async {
     switch (action) {
       case _StackAction.edit:
-        await Navigator.of(context).push(MaterialPageRoute<void>(
-          builder: (_) => EditStackAmountScreen(stackId: stack.id),
-        ));
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => EditStackAmountScreen(stackId: stack.id),
+          ),
+        );
       case _StackAction.rename:
-        await Navigator.of(context).push(MaterialPageRoute<void>(
-          builder: (_) => EditStackNameScreen(stackId: stack.id),
-        ));
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => EditStackNameScreen(stackId: stack.id),
+          ),
+        );
       case _StackAction.changeAvatar:
         if (!mounted) return;
         final app = context.read<AppStateNotifier>();
@@ -71,14 +74,10 @@ class _StackDetailScreenState extends State<StackDetailScreen> {
                 ? s.copyWith(clearColor: true)
                 : s.copyWith(colorKey: key),
           ),
-          onImageSet: (base64) => app.updateStack(
-            stack.id,
-            (s) => s.copyWith(imageData: base64),
-          ),
-          onImageCleared: () => app.updateStack(
-            stack.id,
-            (s) => s.copyWith(clearImage: true),
-          ),
+          onImageSet: (base64) =>
+              app.updateStack(stack.id, (s) => s.copyWith(imageData: base64)),
+          onImageCleared: () =>
+              app.updateStack(stack.id, (s) => s.copyWith(clearImage: true)),
         );
       case _StackAction.delete:
         if (!mounted) return;
@@ -173,15 +172,18 @@ class _StackDetailScreenState extends State<StackDetailScreen> {
         ),
         actions: [
           Padding(
-            padding: EdgeInsets.only(right: hPad - AppSpacing.md + AppSpacing.sm),
+            padding: EdgeInsets.only(
+              right: hPad - AppSpacing.md + AppSpacing.sm,
+            ),
             child: PopupMenuButton<_StackAction>(
               key: _menuKey,
               onOpened: AppHaptics.light,
               onSelected: (action) => _handleAction(action, stack),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 48),
-              popUpAnimationStyle:
-                  const AnimationStyle(duration: Duration(milliseconds: 120)),
+              popUpAnimationStyle: const AnimationStyle(
+                duration: Duration(milliseconds: 120),
+              ),
               offset: const Offset(0, 56),
               color: cs.surface,
               shape: RoundedRectangleBorder(
@@ -206,45 +208,71 @@ class _StackDetailScreenState extends State<StackDetailScreen> {
               itemBuilder: (ctx) => [
                 PopupMenuItem(
                   value: _StackAction.edit,
-                  child: Row(children: [
-                    MenuIconSquare(
-                      icon: Icon(Icons.currency_bitcoin, size: 22, color: cs.onSurfaceVariant),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(l10n.stackMenuUpdateAmount, style: itemStyle),
-                  ]),
+                  child: Row(
+                    children: [
+                      MenuIconSquare(
+                        icon: Icon(
+                          Icons.currency_bitcoin,
+                          size: 22,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(l10n.stackMenuUpdateAmount, style: itemStyle),
+                    ],
+                  ),
                 ),
                 PopupMenuItem(
                   value: _StackAction.rename,
-                  child: Row(children: [
-                    MenuIconSquare(
-                      icon: Icon(Icons.edit_outlined, size: 22, color: cs.onSurfaceVariant),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(l10n.stackMenuChangeName, style: itemStyle),
-                  ]),
+                  child: Row(
+                    children: [
+                      MenuIconSquare(
+                        icon: Icon(
+                          Icons.edit_outlined,
+                          size: 22,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(l10n.stackMenuChangeName, style: itemStyle),
+                    ],
+                  ),
                 ),
                 PopupMenuItem(
                   value: _StackAction.changeAvatar,
-                  child: Row(children: [
-                    MenuIconSquare(
-                      icon: Icon(Icons.face_outlined, size: 22, color: cs.onSurfaceVariant),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(l10n.stackMenuChangeAvatar, style: itemStyle),
-                  ]),
+                  child: Row(
+                    children: [
+                      MenuIconSquare(
+                        icon: Icon(
+                          Icons.face_outlined,
+                          size: 22,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(l10n.stackMenuChangeAvatar, style: itemStyle),
+                    ],
+                  ),
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(
                   value: _StackAction.delete,
-                  child: Row(children: [
-                    MenuIconSquare(
-                      icon: Icon(Icons.delete_outline, size: 22, color: cs.error),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(l10n.stackMenuDelete,
-                        style: itemStyle.copyWith(color: cs.error)),
-                  ]),
+                  child: Row(
+                    children: [
+                      MenuIconSquare(
+                        icon: Icon(
+                          Icons.delete_outline,
+                          size: 22,
+                          color: cs.error,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        l10n.stackMenuDelete,
+                        style: itemStyle.copyWith(color: cs.error),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -292,7 +320,8 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final liveRate = context.select<LivePriceController, double?>(
+    final liveRate =
+        context.select<LivePriceController, double?>(
           (c) => c.rates.forCurrency(currency),
         ) ??
         0;
@@ -306,9 +335,11 @@ class _Header extends StatelessWidget {
       children: [
         const SizedBox(height: AppSpacing.sm),
         GestureDetector(
-          onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-            builder: (_) => EditStackAmountScreen(stackId: stackId),
-          )),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => EditStackAmountScreen(stackId: stackId),
+            ),
+          ),
           child: BtcAmountDisplay(
             sats: stack.sats,
             hidden: stack.isHidden,
@@ -366,15 +397,14 @@ class _FutureSection extends StatelessWidget {
         initialPrice: initial,
         onPriceSelected: (price) {
           context.read<AppStateNotifier>().updateStack(
-                stackId,
-                (s) => s.copyWith(
-                  projectedPrice: price,
-                  projectedPriceCurrency: currency.code,
-                ),
-              );
+            stackId,
+            (s) => s.copyWith(
+              projectedPrice: price,
+              projectedPriceCurrency: currency.code,
+            ),
+          );
         },
       ),
     );
   }
 }
-

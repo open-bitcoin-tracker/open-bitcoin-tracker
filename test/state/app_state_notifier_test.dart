@@ -31,8 +31,7 @@ void main() {
     expect(n.stacks.single.name, 'Cold');
   });
 
-  test('setCurrency notifies and persists after the debounce window',
-      () async {
+  test('setCurrency notifies and persists after the debounce window', () async {
     final prefs = await _freshPrefs();
     fakeAsync((async) {
       final n = AppStateNotifier(AppStateRepository(prefs));
@@ -132,11 +131,11 @@ void main() {
     });
   });
 
-  test('addStack appends in order', () async {
+  test('addStack places the newest stack first', () async {
     final n = await _build();
     n.addStack(const Stack(id: 'a', name: 'A', sats: 1));
     n.addStack(const Stack(id: 'b', name: 'B', sats: 2));
-    expect(n.stacks.map((s) => s.id), ['a', 'b']);
+    expect(n.stacks.map((s) => s.id), ['b', 'a']);
   });
 
   test('updateStack mutates only the targeted stack', () async {
@@ -158,16 +157,19 @@ void main() {
     expect(n.stacks.map((s) => s.id), ['b']);
   });
 
-  test('reorderStacks handles forward move with ReorderableList offset', () async {
-    final n = await _build();
-    n.addStack(const Stack(id: 'a', name: 'A', sats: 1));
-    n.addStack(const Stack(id: 'b', name: 'B', sats: 2));
-    n.addStack(const Stack(id: 'c', name: 'C', sats: 3));
+  test(
+    'reorderStacks handles forward move with ReorderableList offset',
+    () async {
+      final n = await _build();
+      n.addStack(const Stack(id: 'a', name: 'A', sats: 1));
+      n.addStack(const Stack(id: 'b', name: 'B', sats: 2));
+      n.addStack(const Stack(id: 'c', name: 'C', sats: 3));
 
-    // Moving index 0 past index 2 (ReorderableList passes newIndex = 3).
-    n.reorderStacks(0, 3);
-    expect(n.stacks.map((s) => s.id), ['b', 'c', 'a']);
-  });
+      // Moving index 0 past index 2 (ReorderableList passes newIndex = 3).
+      n.reorderStacks(0, 3);
+      expect(n.stacks.map((s) => s.id), ['b', 'a', 'c']);
+    },
+  );
 
   test('reorderStacks handles backward move', () async {
     final n = await _build();
@@ -176,7 +178,7 @@ void main() {
     n.addStack(const Stack(id: 'c', name: 'C', sats: 3));
 
     n.reorderStacks(2, 0);
-    expect(n.stacks.map((s) => s.id), ['c', 'a', 'b']);
+    expect(n.stacks.map((s) => s.id), ['a', 'c', 'b']);
   });
 
   test('no-op reorder does not notify', () async {
@@ -190,15 +192,18 @@ void main() {
   });
 
   group('cycleCurrency', () {
-    test('returns false and is no-op when the ring is empty / singleton', () async {
-      final n = await _build();
-      // Default seed has at least one selected currency. Force a singleton.
-      n.setSelectedCurrencies([Currency.usd]);
-      final before = n.currency;
-      expect(n.cycleCurrency(1), isFalse);
-      expect(n.cycleCurrency(-1), isFalse);
-      expect(n.currency, before);
-    });
+    test(
+      'returns false and is no-op when the ring is empty / singleton',
+      () async {
+        final n = await _build();
+        // Default seed has at least one selected currency. Force a singleton.
+        n.setSelectedCurrencies([Currency.usd]);
+        final before = n.currency;
+        expect(n.cycleCurrency(1), isFalse);
+        expect(n.cycleCurrency(-1), isFalse);
+        expect(n.currency, before);
+      },
+    );
 
     test('steps forward through the ring', () async {
       final n = await _build();
@@ -223,18 +228,21 @@ void main() {
       expect(n.currency, Currency.gbp);
     });
 
-    test('snaps to first ring entry if active currency is outside the ring', () async {
-      final n = await _build();
-      // Drop EUR from the ring while it is the active currency, then re-add a
-      // different set. setSelectedCurrencies will snap if active isn't in the
-      // new list, so to engineer "active not in ring" we set the ring first
-      // then manually setCurrency to something the ring doesn't contain.
-      n.setSelectedCurrencies([Currency.usd, Currency.eur]);
-      n.setCurrency(Currency.jpy);
+    test(
+      'snaps to first ring entry if active currency is outside the ring',
+      () async {
+        final n = await _build();
+        // Drop EUR from the ring while it is the active currency, then re-add a
+        // different set. setSelectedCurrencies will snap if active isn't in the
+        // new list, so to engineer "active not in ring" we set the ring first
+        // then manually setCurrency to something the ring doesn't contain.
+        n.setSelectedCurrencies([Currency.usd, Currency.eur]);
+        n.setCurrency(Currency.jpy);
 
-      // Stepping forward from "outside the ring" should land on ring[0+1].
-      expect(n.cycleCurrency(1), isTrue);
-      expect(n.currency, Currency.eur);
-    });
+        // Stepping forward from "outside the ring" should land on ring[0+1].
+        expect(n.cycleCurrency(1), isTrue);
+        expect(n.currency, Currency.eur);
+      },
+    );
   });
 }

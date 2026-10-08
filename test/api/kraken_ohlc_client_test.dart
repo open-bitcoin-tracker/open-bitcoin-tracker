@@ -7,41 +7,67 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 Map<String, dynamic> _payload(List<List<dynamic>> rows, {int last = 0}) => {
-      'error': const [],
-      'result': {
-        'XXBTZUSD': rows,
-        'last': last,
-      },
-    };
+  'error': const [],
+  'result': {'XXBTZUSD': rows, 'last': last},
+};
 
 void main() {
   group('KrakenOhlcClient.daily', () {
-    test('parses time/close (string-encoded) and converts seconds to ms', () async {
-      final client = KrakenOhlcClient(
-        httpClient: MockClient((_) async => http.Response(
-              jsonEncode(_payload([
-                [1700000000, '39000.0', '40500.0', '38800.0', '40000.0', '0', '0', 0],
-                [1700086400, '40000.0', '41200.0', '39900.0', '41000.0', '0', '0', 0],
-              ])),
+    test(
+      'parses time/close (string-encoded) and converts seconds to ms',
+      () async {
+        final client = KrakenOhlcClient(
+          httpClient: MockClient(
+            (_) async => http.Response(
+              jsonEncode(
+                _payload([
+                  [
+                    1700000000,
+                    '39000.0',
+                    '40500.0',
+                    '38800.0',
+                    '40000.0',
+                    '0',
+                    '0',
+                    0,
+                  ],
+                  [
+                    1700086400,
+                    '40000.0',
+                    '41200.0',
+                    '39900.0',
+                    '41000.0',
+                    '0',
+                    '0',
+                    0,
+                  ],
+                ]),
+              ),
               200,
-            )),
-      );
-      final points = await client.daily();
-      expect(points, hasLength(2));
-      expect(points![0].timeMs, 1700000000 * 1000);
-      expect(points[0].priceUsd, 40000.0);
-      expect(points[1].priceUsd, 41000.0);
-    });
+            ),
+          ),
+        );
+        final points = await client.daily();
+        expect(points, hasLength(2));
+        expect(points![0].timeMs, 1700000000 * 1000);
+        expect(points[0].priceUsd, 40000.0);
+        expect(points[1].priceUsd, 41000.0);
+      },
+    );
 
     test('skips rows with close=0', () async {
       final client = KrakenOhlcClient(
-        httpClient: MockClient((_) async => http.Response(
-              jsonEncode(_payload([
+        httpClient: MockClient(
+          (_) async => http.Response(
+            jsonEncode(
+              _payload([
                 [1, '0', '0', '0', '0', '0', '0', 0],
                 [2, '0', '0', '0', '100.0', '0', '0', 0],
-              ])),
-              200,
-            )),
+              ]),
+            ),
+            200,
+          ),
+        ),
       );
       final points = await client.daily();
       expect(points, hasLength(1));
@@ -109,7 +135,9 @@ void main() {
           [1700000000 + i * 900, '0', '0', '0', '${100.0 + i}', '0', '0', 0],
       ];
       final client = KrakenOhlcClient(
-        httpClient: MockClient((_) async => http.Response(jsonEncode(_payload(rows)), 200)),
+        httpClient: MockClient(
+          (_) async => http.Response(jsonEncode(_payload(rows)), 200),
+        ),
       );
       final points = await client.intraday(BtcRange.d7);
       expect(points, hasLength(672));
@@ -140,22 +168,27 @@ void main() {
           [1700000000 + i * 3600, '0', '0', '0', '${300.0 + i}', '0', '0', 0],
       ];
       final client = KrakenOhlcClient(
-        httpClient: MockClient((_) async => http.Response(jsonEncode(_payload(rows)), 200)),
+        httpClient: MockClient(
+          (_) async => http.Response(jsonEncode(_payload(rows)), 200),
+        ),
       );
       final points = await client.intraday(BtcRange.m1);
       expect(points, hasLength(720));
     });
 
-    test('long ranges throw ArgumentError without hitting the network', () async {
-      var called = false;
-      final client = KrakenOhlcClient(
-        httpClient: MockClient((_) async {
-          called = true;
-          return http.Response('', 200);
-        }),
-      );
-      expect(() => client.intraday(BtcRange.all), throwsArgumentError);
-      expect(called, isFalse);
-    });
+    test(
+      'long ranges throw ArgumentError without hitting the network',
+      () async {
+        var called = false;
+        final client = KrakenOhlcClient(
+          httpClient: MockClient((_) async {
+            called = true;
+            return http.Response('', 200);
+          }),
+        );
+        expect(() => client.intraday(BtcRange.all), throwsArgumentError);
+        expect(called, isFalse);
+      },
+    );
   });
 }

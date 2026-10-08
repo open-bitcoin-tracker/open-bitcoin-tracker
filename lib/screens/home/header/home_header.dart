@@ -19,7 +19,11 @@ import 'range_bar.dart';
 /// header itself (which causes duplicate-key errors when the header is
 /// rendered in two places for measurement + display).
 class MeasureSize extends SingleChildRenderObjectWidget {
-  const MeasureSize({super.key, required this.onChange, required Widget super.child});
+  const MeasureSize({
+    super.key,
+    required this.onChange,
+    required Widget super.child,
+  });
 
   final ValueChanged<Size> onChange;
 
@@ -28,9 +32,8 @@ class MeasureSize extends SingleChildRenderObjectWidget {
       _MeasureSizeRenderObject(onChange);
 
   @override
-  // ignore: library_private_types_in_public_api
-  void updateRenderObject(BuildContext context, _MeasureSizeRenderObject renderObject) {
-    renderObject.onChange = onChange;
+  void updateRenderObject(BuildContext context, RenderObject renderObject) {
+    (renderObject as _MeasureSizeRenderObject).onChange = onChange;
   }
 }
 
@@ -70,7 +73,11 @@ class PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     if (constrained) {
       // No OverflowBox — give the child a tight height equal to the sliver
       // box so that Expanded children can distribute the space correctly.
@@ -88,7 +95,9 @@ class PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(PinnedHeaderDelegate old) =>
-      old.height != height || old.child != child || old.constrained != constrained;
+      old.height != height ||
+      old.child != child ||
+      old.constrained != constrained;
 }
 
 class HomeHeader extends StatefulWidget {
@@ -169,7 +178,9 @@ class _HomeHeaderState extends State<HomeHeader> {
   @override
   Widget build(BuildContext context) {
     final logScale = context.select<AppStateNotifier, bool>((a) => a.logScale);
-    final chartHeight = context.select<AppStateNotifier, ChartHeight>((a) => a.chartHeight);
+    final chartHeight = context.select<AppStateNotifier, ChartHeight>(
+      (a) => a.chartHeight,
+    );
     final buttonsRow = OverflowButton(onOpenConverter: widget.onOpenConverter);
     final isLandscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
@@ -287,7 +298,8 @@ class _HomeHeaderState extends State<HomeHeader> {
 
   Widget _buildChipHint(BuildContext context) {
     final swipeHintDismissed = context.select<AppStateNotifier, bool>(
-        (a) => a.swipeChipHintDismissed);
+      (a) => a.swipeChipHintDismissed,
+    );
     // Latch: only engage once the user has swiped the currency AND taps a
     // non-All range. Once latched it stays true for the session.
     if (widget.range != BtcRange.all && !swipeHintDismissed) {
@@ -303,7 +315,10 @@ class _HomeHeaderState extends State<HomeHeader> {
     final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.md,
       ),
       child: Center(
         child: Container(
@@ -332,8 +347,9 @@ class _HomeHeaderState extends State<HomeHeader> {
   Widget _buildChartArea(BuildContext context, {required bool logScale}) {
     final cs = Theme.of(context).colorScheme;
     final p = context.palette;
-    final loading =
-        widget.usesAllHistory ? widget.allHistoryEmpty : widget.loading;
+    final loading = widget.usesAllHistory
+        ? widget.allHistoryEmpty
+        : widget.loading;
 
     final Widget child;
     if (loading) {
@@ -399,4 +415,3 @@ class _HomeHeaderState extends State<HomeHeader> {
     );
   }
 }
-

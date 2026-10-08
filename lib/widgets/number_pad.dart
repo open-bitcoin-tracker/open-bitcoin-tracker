@@ -103,24 +103,30 @@ class _Grid extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget digit(String d) =>
         _Key(key: numberPadKey(d), onTap: () => onInput(d), child: Text(d));
-    return LayoutBuilder(builder: (context, constraints) {
-      final keyWidth = (constraints.maxWidth - AppSpacing.sm * 2) / 3;
-      final keyHeight = keyWidth.clamp(_kMinKeyHeight, _kMaxKeyHeight);
-      return GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 3,
-        mainAxisSpacing: AppSpacing.sm,
-        crossAxisSpacing: AppSpacing.sm,
-        childAspectRatio: keyWidth / keyHeight,
-        children: _tiles(digit),
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final keyWidth = (constraints.maxWidth - AppSpacing.sm * 2) / 3;
+        final keyHeight = keyWidth.clamp(_kMinKeyHeight, _kMaxKeyHeight);
+        return GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 3,
+          mainAxisSpacing: AppSpacing.sm,
+          crossAxisSpacing: AppSpacing.sm,
+          childAspectRatio: keyWidth / keyHeight,
+          children: _tiles(digit),
+        );
+      },
+    );
   }
 
   List<Widget> _tiles(Widget Function(String) digit) {
     final bottomLeft = showDecimal
-        ? _Key(key: numberPadKey('.'), onTap: () => onInput('.'), child: Text(decimalLabel))
+        ? _Key(
+            key: numberPadKey('.'),
+            onTap: () => onInput('.'),
+            child: Text(decimalLabel),
+          )
         : _Key(
             key: numberPadKey('AC'),
             onTap: isEmpty ? () {} : onClear,
@@ -134,7 +140,11 @@ class _Grid extends StatelessWidget {
             disabled: true,
             child: const Text('0'),
           )
-        : _Key(key: numberPadKey('0'), onTap: () => onInput('0'), child: const Text('0'));
+        : _Key(
+            key: numberPadKey('0'),
+            onTap: () => onInput('0'),
+            child: const Text('0'),
+          );
     return [
       digit('1'),
       digit('2'),

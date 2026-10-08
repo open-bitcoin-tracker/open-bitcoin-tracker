@@ -4,8 +4,7 @@ import '../data/app_enums.dart';
 import '../services/platform_security.dart';
 import 'app_state_notifier.dart';
 
-class StacksLockController extends ChangeNotifier
-    with WidgetsBindingObserver {
+class StacksLockController extends ChangeNotifier with WidgetsBindingObserver {
   StacksLockController({required AppStateNotifier app}) : _app = app {
     _lastMode = _app.stacksAuthMode;
     _unlocked = _lastMode == StacksAuthMode.off;
@@ -84,7 +83,8 @@ class StacksLockController extends ChangeNotifier
     if (state == AppLifecycleState.paused) {
       _backgroundedAt = DateTime.now();
     } else if (state == AppLifecycleState.resumed) {
-      final timeout = _app.stacksLockTimeout.duration; // null == "Never" / cold-start only
+      final timeout =
+          _app.stacksLockTimeout.duration; // null == "Never" / cold-start only
       final bg = _backgroundedAt;
       _backgroundedAt = null;
       if (mode == StacksAuthMode.off || timeout == null || bg == null) return;

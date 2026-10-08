@@ -55,12 +55,20 @@ class _CurrencyPickerScreenState extends State<CurrencyPickerScreen> {
         onChanged: blocked ? (_) {} : (_) => _toggle(c),
         controlAffinity: ListTileControlAffinity.leading,
         contentPadding: EdgeInsets.symmetric(horizontal: hPad),
-        title: Text.rich(TextSpan(children: [
-          TextSpan(text: c.code, style: const TextStyle(fontWeight: FontWeight.bold)),
-          TextSpan(text: ' - ${currencyLabel(l10n, c)}'),
-        ])),
+        title: Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: c.code,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(text: ' - ${currencyLabel(l10n, c)}'),
+            ],
+          ),
+        ),
       );
     }
+
     return PopScope<List<Currency>>(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -96,15 +104,12 @@ class _CurrencyPickerScreenState extends State<CurrencyPickerScreen> {
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(
-                  hPad,
-                  0,
-                  hPad,
-                  AppSpacing.md,
-                ),
+                padding: EdgeInsets.fromLTRB(hPad, 0, hPad, AppSpacing.md),
                 child: Text(
                   AppLocalizations.of(context).currencyPickerHint,
-                  style: AppTypography.body.copyWith(color: cs.onSurfaceVariant),
+                  style: AppTypography.body.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
               ),
               for (final c in all.take(_kCurrencyMajorsCount)) tile(c),

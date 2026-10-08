@@ -37,7 +37,8 @@ class TotalDetailScreen extends StatelessWidget {
         ? app.state.totalProjectedPrice
         : null;
 
-    final liveRate = context.select<LivePriceController, double?>(
+    final liveRate =
+        context.select<LivePriceController, double?>(
           (c) => c.rates.forCurrency(currency),
         ) ??
         0;
@@ -110,9 +111,10 @@ class TotalDetailScreen extends StatelessWidget {
               currency: currency,
               initialPrice: initial,
               onPriceSelected: (price) {
-                context
-                    .read<AppStateNotifier>()
-                    .setTotalProjectedPrice(price, currency.code);
+                context.read<AppStateNotifier>().setTotalProjectedPrice(
+                  price,
+                  currency.code,
+                );
               },
             ),
           ),
@@ -141,10 +143,7 @@ class _TotalHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const SizedBox(height: AppSpacing.sm),
-        BtcAmountDisplay(
-          sats: totalSats,
-          mode: btcDisplayMode,
-        ),
+        BtcAmountDisplay(sats: totalSats, mode: btcDisplayMode),
         const SizedBox(height: AppSpacing.xs),
         Text(
           formatFiat(value, currency, decimalsUnder10: true).tight,

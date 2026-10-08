@@ -1,3 +1,4 @@
+import '../support/test_viewport.dart';
 import 'dart:io';
 
 import 'package:open_bitcoin_tracker/api/api.dart';
@@ -17,7 +18,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Finder _keypadKey(String label) => find.byKey(numberPadKey(label));
 
-Future<Widget> _wrap() async {
+Future<Widget> _wrap(WidgetTester tester) async {
+  setTestViewport(tester, const Size(400, 850));
   SharedPreferences.setMockInitialValues({
     'btc_rates_cache': '{"USD":100000,"GBP":80000,"EUR":90000}',
   });
@@ -27,12 +29,23 @@ Future<Widget> _wrap() async {
   final stream = KrakenStreamService();
   final ohlc = KrakenOhlcClient(httpClient: noopHttp);
   final cache = BtcRatesCache(prefs);
-  final historyCache = BtcHistoryCache(directory: Directory.systemTemp.createTempSync('bt_test_'));
+  final historyCache = BtcHistoryCache(
+    directory: Directory.systemTemp.createTempSync('bt_test_'),
+  );
   return MultiProvider(
     providers: [
       ChangeNotifierProvider.value(value: app),
-      ChangeNotifierProvider(create: (_) => ConverterState()),
-      ChangeNotifierProvider(create: (_) => LivePriceController(stream: stream, ohlc: ohlc, cache: cache, historyCache: historyCache)),
+      ChangeNotifierProvider(
+        create: (ctx) => ConverterState(app: ctx.read<AppStateNotifier>()),
+      ),
+      ChangeNotifierProvider(
+        create: (_) => LivePriceController(
+          stream: stream,
+          ohlc: ohlc,
+          cache: cache,
+          historyCache: historyCache,
+        ),
+      ),
     ],
     child: MaterialApp(
       home: const ConverterScreen(),
@@ -55,28 +68,28 @@ Future<Widget> _wrap() async {
 // whose flattened plain text — with WidgetSpan placeholder chars (U+FFFC)
 // from the caret stripped — equals [expected].
 Finder _findValueText(String expected) => find.byWidgetPredicate((w) {
-      if (w is Text) {
-        if (w.data == expected) return true;
-        final span = w.textSpan;
-        if (span == null) return false;
-        final flat = span.toPlainText().replaceAll('￼', '');
-        return flat == expected;
-      }
-      return false;
-    });
+  if (w is Text) {
+    if (w.data == expected) return true;
+    final span = w.textSpan;
+    if (span == null) return false;
+    final flat = span.toPlainText().replaceAll('￼', '');
+    return flat == expected;
+  }
+  return false;
+});
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('renders empty default state', (tester) async {
-    await tester.pumpWidget(await _wrap());
+    await tester.pumpWidget(await _wrap(tester));
     await tester.pump();
 
     // The old rate-label line ('1 BTC = $100,000') was removed when the
     // converter dropped its static rate display; assert the scaffold instead.
     expect(find.text('Fiat - BTC'), findsOneWidget);
     expect(find.text('Sats - BTC'), findsOneWidget);
-    expect(find.text('BITCOIN (SATS)'), findsOneWidget);
+    expect(find.text('BITCOIN (BTC)'), findsOneWidget);
     expect(find.byType(NumberPad), findsOneWidget);
 
     // The screen's first-build seeding starts the notifier's debounced
@@ -84,21 +97,23 @@ void main() {
     await tester.pump(AppStateNotifier.saveDebounceWindow);
   });
 
-  testWidgets('typing a fiat digit computes sats', (tester) async {
-    await tester.pumpWidget(await _wrap());
+  testWidgets('typing fiat computes BTC with the default display unit', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await _wrap(tester));
     await tester.pump();
 
     await tester.tap(_keypadKey('5'));
     await tester.pump();
 
-    // fiat = 5 -> 5,000 sats on sats card
-    expect(_findValueText('5,000'), findsOneWidget);
+    // At $100,000/BTC, $5 is 0.00005 BTC.
+    expect(_findValueText('0.00005'), findsOneWidget);
 
     await tester.pump(AppStateNotifier.saveDebounceWindow);
   });
 
   testWidgets('switching to sats then typing computes BTC', (tester) async {
-    await tester.pumpWidget(await _wrap());
+    await tester.pumpWidget(await _wrap(tester));
     await tester.pump();
 
     await tester.tap(find.text('Sats - BTC'));
@@ -122,7 +137,7 @@ void main() {
   });
 
   testWidgets('decimal key only available in fiat mode', (tester) async {
-    await tester.pumpWidget(await _wrap());
+    await tester.pumpWidget(await _wrap(tester));
     await tester.pump();
 
     expect(_keypadKey('.'), findsOneWidget);

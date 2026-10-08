@@ -36,28 +36,28 @@ bool isPinCorruptResult(Object? result) => result is _CorruptBlobSentinel;
 
 class PinEntryScreen extends StatefulWidget {
   const PinEntryScreen.verify({super.key, this.title})
-      : _flow = _PinFlow.verify,
-        _collectOnly = false;
+    : _flow = _PinFlow.verify,
+      _collectOnly = false;
 
   /// First-time setup. The screen mints a DEK and migrates plaintext stacks
   /// to ciphertext on success. Use this for off → pin transitions.
   const PinEntryScreen.setup({super.key})
-      : _flow = _PinFlow.setup,
-        _collectOnly = false,
-        title = null;
+    : _flow = _PinFlow.setup,
+      _collectOnly = false,
+      title = null;
 
   /// Like [setup] but pops the entered PIN instead of running migration.
   /// Used by mode transitions where the DEK is already in memory and the
   /// caller will perform the rewrap itself.
   const PinEntryScreen.collect({super.key})
-      : _flow = _PinFlow.setup,
-        _collectOnly = true,
-        title = null;
+    : _flow = _PinFlow.setup,
+      _collectOnly = true,
+      title = null;
 
   const PinEntryScreen.change({super.key})
-      : _flow = _PinFlow.change,
-        _collectOnly = false,
-        title = null;
+    : _flow = _PinFlow.change,
+      _collectOnly = false,
+      title = null;
 
   final _PinFlow _flow;
   final bool _collectOnly;
@@ -72,7 +72,8 @@ class _PinEntryScreenState extends State<PinEntryScreen>
   String _input = '';
   String? _firstPinDuringSetup;
   _SetupStep _setupStep = _SetupStep.enter;
-  bool _changeVerified = false; // change-mode: true once current PIN was confirmed
+  bool _changeVerified =
+      false; // change-mode: true once current PIN was confirmed
   List<int>? _changeOldDek; // change-mode: held between verify and rewrap
   String _statusMessage = '';
   bool _statusIsError = false;
@@ -113,8 +114,7 @@ class _PinEntryScreenState extends State<PinEntryScreen>
       context.read<StacksUnlockOrchestrator>();
 
   bool get _onCooldown => _cooldownRemaining > Duration.zero;
-  bool get _isValid =>
-      !_onCooldown && !_busy && _input.length == _kPinLength;
+  bool get _isValid => !_onCooldown && !_busy && _input.length == _kPinLength;
 
   void _setStatus(String message, {bool error = false}) {
     setState(() {
@@ -369,12 +369,7 @@ class _PinEntryScreenState extends State<PinEntryScreen>
       backgroundColor: cs.surfaceContainerLow,
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            hPad,
-            0,
-            hPad,
-            AppSpacing.md,
-          ),
+          padding: EdgeInsets.fromLTRB(hPad, 0, hPad, AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -393,7 +388,9 @@ class _PinEntryScreenState extends State<PinEntryScreen>
                       animation: _shakeCtrl,
                       builder: (context, child) {
                         final t = _shakeCtrl.value;
-                        final dx = t == 0 ? 0.0 : sin(t * pi * 8) * 10 * (1 - t);
+                        final dx = t == 0
+                            ? 0.0
+                            : sin(t * pi * 8) * 10 * (1 - t);
                         return Transform.translate(
                           offset: Offset(dx, 0),
                           child: child,

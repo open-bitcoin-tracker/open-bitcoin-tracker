@@ -140,7 +140,8 @@ class _AmountsRow extends StatelessWidget {
     // intrinsic height, which LayoutBuilder forbids. So measure against the
     // text column's width derived from the screen instead.
     final scaler = MediaQuery.textScalerOf(context);
-    final fitsOnOneLine = _width(btcStr, amountStyle, scaler) +
+    final fitsOnOneLine =
+        _width(btcStr, amountStyle, scaler) +
             _gap +
             _width(fiatStr, amountStyle, scaler) <=
         _columnWidth(context);
@@ -193,4 +194,3 @@ class _AmountsRow extends StatelessWidget {
     return width;
   }
 }
-

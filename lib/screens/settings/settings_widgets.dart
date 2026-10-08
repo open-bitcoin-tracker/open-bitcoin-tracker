@@ -20,11 +20,7 @@ class SettingsGroup extends StatelessWidget {
     final rows = <Widget>[];
     for (var i = 0; i < children.length; i++) {
       if (i > 0) {
-        rows.add(Divider(
-          height: 1,
-          thickness: 1,
-          color: cs.outlineVariant,
-        ));
+        rows.add(Divider(height: 1, thickness: 1, color: cs.outlineVariant));
       }
       rows.add(children[i]);
     }
@@ -130,11 +126,7 @@ class SettingsPickerTile extends StatelessWidget {
                         ),
                       ),
               ),
-              Icon(
-                trailingIcon,
-                size: 24,
-                color: cs.onSurfaceVariant,
-              ),
+              Icon(trailingIcon, size: 24, color: cs.onSurfaceVariant),
             ],
           ),
         ),
@@ -174,7 +166,8 @@ class SettingsToggleTile extends StatelessWidget {
             }
           : null,
       trackColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled) && states.contains(WidgetState.selected)) {
+        if (states.contains(WidgetState.disabled) &&
+            states.contains(WidgetState.selected)) {
           return cs.onSurface.withValues(alpha: 0.38);
         }
         return null;
@@ -184,7 +177,9 @@ class SettingsToggleTile extends StatelessWidget {
           return Icon(
             Icons.check_rounded,
             size: 18,
-            color: enabled ? p.bitcoinOrange : cs.onSurface.withValues(alpha: 0.38),
+            color: enabled
+                ? p.bitcoinOrange
+                : cs.onSurface.withValues(alpha: 0.38),
           );
         }
         return null;
@@ -255,8 +250,7 @@ class SettingsSegmentedTile extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: grouped ? Colors.transparent : cs.surface,
-        borderRadius:
-            grouped ? null : BorderRadius.circular(AppSpacing.radius),
+        borderRadius: grouped ? null : BorderRadius.circular(AppSpacing.radius),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -306,7 +300,9 @@ class _Segments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final trackColor = enabled ? cs.surfaceContainerLow : cs.surfaceContainerLow.withValues(alpha: 0.5);
+    final trackColor = enabled
+        ? cs.surfaceContainerLow
+        : cs.surfaceContainerLow.withValues(alpha: 0.5);
     return DecoratedBox(
       decoration: BoxDecoration(
         color: trackColor,
@@ -373,7 +369,10 @@ class _Segment extends StatelessWidget {
           child: InkWell(
             onTap: enabled ? onTap : null,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: 6,
+              ),
               child: Text(
                 label,
                 style: AppTypography.body.copyWith(

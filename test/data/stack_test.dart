@@ -56,12 +56,7 @@ void main() {
     });
 
     test('copyWith leaves imageData unchanged by default', () {
-      const s = Stack(
-        id: 'a',
-        name: 'Cold',
-        sats: 1,
-        imageData: 'AAAB',
-      );
+      const s = Stack(id: 'a', name: 'Cold', sats: 1, imageData: 'AAAB');
       expect(s.copyWith(name: 'Hot').imageData, 'AAAB');
     });
 
@@ -71,26 +66,13 @@ void main() {
     });
 
     test('copyWith(clearImage: true) nulls imageData', () {
-      const s = Stack(
-        id: 'a',
-        name: 'Cold',
-        sats: 1,
-        imageData: 'AAAB',
-      );
+      const s = Stack(id: 'a', name: 'Cold', sats: 1, imageData: 'AAAB');
       expect(s.copyWith(clearImage: true).imageData, isNull);
     });
 
     test('copyWith(clearImage: true) wins over imageData arg', () {
-      const s = Stack(
-        id: 'a',
-        name: 'Cold',
-        sats: 1,
-        imageData: 'AAAB',
-      );
-      expect(
-        s.copyWith(imageData: 'BBBC', clearImage: true).imageData,
-        isNull,
-      );
+      const s = Stack(id: 'a', name: 'Cold', sats: 1, imageData: 'AAAB');
+      expect(s.copyWith(imageData: 'BBBC', clearImage: true).imageData, isNull);
     });
 
     test('toJson omits colorKey when null', () {
@@ -130,10 +112,7 @@ void main() {
 
     test('copyWith(clearColor: true) wins over colorKey arg', () {
       const s = Stack(id: 'a', name: 'Cold', sats: 1, colorKey: 'amber');
-      expect(
-        s.copyWith(colorKey: 'rust', clearColor: true).colorKey,
-        isNull,
-      );
+      expect(s.copyWith(colorKey: 'rust', clearColor: true).colorKey, isNull);
     });
   });
 }

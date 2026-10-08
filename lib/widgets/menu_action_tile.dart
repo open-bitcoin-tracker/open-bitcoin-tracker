@@ -24,8 +24,9 @@ class MenuActionTile extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final color = destructive ? cs.error : cs.onSurface;
     final grouped = _MenuActionGroupScope.of(context);
-    final radius =
-        grouped ? BorderRadius.zero : BorderRadius.circular(AppSpacing.radius);
+    final radius = grouped
+        ? BorderRadius.zero
+        : BorderRadius.circular(AppSpacing.radius);
     return ClipRRect(
       borderRadius: radius,
       child: DecoratedBox(
@@ -103,11 +104,7 @@ class MenuActionGroup extends StatelessWidget {
     final rows = <Widget>[];
     for (var i = 0; i < children.length; i++) {
       if (i > 0) {
-        rows.add(Divider(
-          height: 1,
-          thickness: 1,
-          color: cs.outlineVariant,
-        ));
+        rows.add(Divider(height: 1, thickness: 1, color: cs.outlineVariant));
       }
       rows.add(children[i]);
     }
@@ -129,7 +126,8 @@ class _MenuActionGroupScope extends InheritedWidget {
   const _MenuActionGroupScope({required super.child});
 
   static bool of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_MenuActionGroupScope>() !=
+    return context
+            .dependOnInheritedWidgetOfExactType<_MenuActionGroupScope>() !=
         null;
   }
 

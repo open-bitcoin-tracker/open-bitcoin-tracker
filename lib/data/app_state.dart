@@ -1,129 +1,64 @@
 import 'app_enums.dart';
 import 'stack.dart';
+import 'app_state_codec.dart';
+import 'preferences/portfolio_state.dart';
+import 'preferences/currency_preferences.dart';
+import 'preferences/appearance_preferences.dart';
+import 'preferences/chart_preferences.dart';
+import 'preferences/security_preferences.dart';
+import 'preferences/converter_preferences.dart';
 
 class AppState {
   const AppState({
-    this.stacks = const [],
-    this.currency = Currency.usd,
-    this.selectedCurrencies = const [Currency.usd],
-    this.showPortfolio = false,
-    this.showChart = true,
-    this.chartHeight = ChartHeight.xxxl,
-    this.theme = AppTheme.system,
-    this.darkVariant = DarkVariant.blue,
-    this.lightVariant = LightVariant.cream,
-    this.btcRange = BtcRange.all,
-    this.daysOverflowQuickRange = BtcRange.d1,
-    this.weeksOverflowQuickRange = BtcRange.w1,
-    this.overflowQuickRange = BtcRange.y10,
-    this.monthsOverflowQuickRange = BtcRange.m6,
-    this.logScale = true,
-    this.btcDisplayMode = BtcDisplayMode.btc,
-    this.stacksAuthMode = StacksAuthMode.off,
-    this.stacksLockTimeout = StacksLockTimeout.m5,
-    this.language = LanguagePref.system,
-    this.livePriceCadence = LivePriceCadence.live,
-    this.converterCurrency,
-    this.converterBtcMode,
-    this.converterMode,
-    this.converterFiatModeRaw,
-    this.converterFiatModeActiveSlot,
-    this.converterSatsModeRaw,
-    this.converterSatsModeActiveSlot,
-    this.homeWidgetOrder = const [
-      HomeWidget.stacks,
-    ],
-    this.totalImageData,
-    this.totalColorKey,
-    this.totalProjectedPrice,
-    this.totalProjectedPriceCurrency,
-    this.swipeChipHintDismissed = false,
-    this.priceSwipeHintDismissed = false,
-    this.showPriceDelta = false,
+    this.portfolio = const PortfolioState.defaults(),
+    this.currencies = const CurrencyPreferences.defaults(),
+    this.appearance = const AppearancePreferences(),
+    this.chart = const ChartPreferences(),
+    this.security = const SecurityPreferences(),
+    this.converter = const ConverterPreferences(),
   });
-
-
-  final List<Stack> stacks;
-  final Currency currency;
-  // Currencies the user has opted into via the picker, in the order the user
-  // checked them — that order is what the home-screen swipe gesture cycles
-  // through. Always contains [currency]. Minimum length: 1.
-  final List<Currency> selectedCurrencies;
-  final bool showPortfolio;
-  final bool showChart;
-  final ChartHeight chartHeight;
-  final AppTheme theme;
-  // Which dark palette to apply when the active brightness is dark. Ignored
-  // when the resolved theme is light.
-  final DarkVariant darkVariant;
-  // Symmetric: which light palette to apply when the active brightness is
-  // light. Ignored when the resolved theme is dark.
-  final LightVariant lightVariant;
-  final BtcRange btcRange;
-  // The range mounted in the days overflow chip (1D..7D).
-  final BtcRange daysOverflowQuickRange;
-  // The range mounted in the weeks overflow chip (1W..4W).
-  final BtcRange weeksOverflowQuickRange;
-  // The range currently mounted in the years overflow quick-chip slot.
-  final BtcRange overflowQuickRange;
-  // Same idea for the months-overflow chip (1M..12M).
-  final BtcRange monthsOverflowQuickRange;
-  final bool logScale;
-  // Render satoshi counts as integer sats (default — preserves the unit users
-  // entered) or as BTC with up to 8 decimal places. Storage is always sats.
-  final BtcDisplayMode btcDisplayMode;
-  final StacksAuthMode stacksAuthMode;
-  final StacksLockTimeout stacksLockTimeout;
-  final LanguagePref language;
-  final LivePriceCadence livePriceCadence;
-  // Persisted currency for the in-app converter screen. Independent from
-  // [currency] (the home-screen / swipe-ring active currency) so the user
-  // can convert into a one-off currency without polluting the home view.
-  // Null until the user first opens the converter — the screen seeds it
-  // from [currency] on that visit.
-  final Currency? converterCurrency;
-  // Persisted Bitcoin display unit (sats vs BTC) for the converter screen,
-  // independent from the global [btcDisplayMode]. Same lifecycle as
-  // [converterCurrency]: null until the screen first seeds from the global
-  // setting, after which the converter's own picker is the only mutator.
-  final BtcDisplayMode? converterBtcMode;
-  // Persisted converter mode (fiat↔BTC vs sats↔BTC). Stored as a code
-  // ('fiat'/'sats') in JSON. Null defaults to fiat mode on first launch.
-  final String? converterMode;
-  // Persisted per-mode raw input + active slot for the converter screen so
-  // values survive app restarts. Null until the user has typed in that mode.
-  // Active slot is stored as a code ('top'/'bottom') in JSON so an unknown
-  // value falls back to the default. The raw is locale-neutral ('.'-decimal,
-  // no grouping), so the same string parses identically across locales.
-  final String? converterFiatModeRaw;
-  final String? converterFiatModeActiveSlot;
-  final String? converterSatsModeRaw;
-  final String? converterSatsModeActiveSlot;
-  // Top-to-bottom render order for the home-screen widgets that participate in
-  // user reordering. Must contain exactly the set of [HomeWidget.values] —
-  // the [fromJson] parser appends missing entries so an upgrade preserves the
-  // user's prior ordering while picking up newly-added widgets.
-  final List<HomeWidget> homeWidgetOrder;
-  // Avatar customization for the portfolio total card — same shape as the
-  // per-stack [Stack.imageData] / [Stack.colorKey] fields. The total card
-  // isn't a Stack so its avatar settings live here on AppState. Null means
-  // default initial-letter circle in the theme's bitcoinOrange.
-  final String? totalImageData;
-  final String? totalColorKey;
-  // Persisted slider position for the total-portfolio future-value projection.
-  // Same semantics as Stack.projectedPrice / projectedPriceCurrency.
-  final double? totalProjectedPrice;
-  final String? totalProjectedPriceCurrency;
-  // True once the user swipes up or down on any range chip for the first time.
-  // The hint teaches the swipe-to-cycle shortcut.
-  final bool swipeChipHintDismissed;
-  // True once the user has swiped the live price to cycle currency for the
-  // first time. Suppresses the nudge animation and subtitle hint on subsequent
-  // launches.
-  final bool priceSwipeHintDismissed;
-  // When true, show the signed tick-to-tick price delta as a subtitle below
-  // the live price for ~2 s each time the price updates. Off by default.
-  final bool showPriceDelta;
+  final PortfolioState portfolio;
+  final CurrencyPreferences currencies;
+  final AppearancePreferences appearance;
+  final ChartPreferences chart;
+  final SecurityPreferences security;
+  final ConverterPreferences converter;
+  List<Stack> get stacks => portfolio.stacks;
+  Currency get currency => currencies.currency;
+  List<Currency> get selectedCurrencies => currencies.selectedCurrencies;
+  bool get showPortfolio => portfolio.showPortfolio;
+  bool get showChart => chart.showChart;
+  ChartHeight get chartHeight => chart.chartHeight;
+  AppTheme get theme => appearance.theme;
+  DarkVariant get darkVariant => appearance.darkVariant;
+  LightVariant get lightVariant => appearance.lightVariant;
+  BtcRange get btcRange => chart.btcRange;
+  BtcRange get daysOverflowQuickRange => chart.daysOverflowQuickRange;
+  BtcRange get weeksOverflowQuickRange => chart.weeksOverflowQuickRange;
+  BtcRange get overflowQuickRange => chart.overflowQuickRange;
+  BtcRange get monthsOverflowQuickRange => chart.monthsOverflowQuickRange;
+  bool get logScale => chart.logScale;
+  BtcDisplayMode get btcDisplayMode => appearance.btcDisplayMode;
+  StacksAuthMode get stacksAuthMode => security.authMode;
+  StacksLockTimeout get stacksLockTimeout => security.lockTimeout;
+  LanguagePref get language => appearance.language;
+  LivePriceCadence get livePriceCadence => chart.livePriceCadence;
+  Currency? get converterCurrency => converter.currency;
+  BtcDisplayMode? get converterBtcMode => converter.btcMode;
+  String? get converterMode => converter.mode;
+  String? get converterFiatModeRaw => converter.fiatModeRaw;
+  String? get converterFiatModeActiveSlot => converter.fiatModeActiveSlot;
+  String? get converterSatsModeRaw => converter.satsModeRaw;
+  String? get converterSatsModeActiveSlot => converter.satsModeActiveSlot;
+  List<HomeWidget> get homeWidgetOrder => portfolio.homeWidgetOrder;
+  String? get totalImageData => portfolio.totalImageData;
+  String? get totalColorKey => portfolio.totalColorKey;
+  double? get totalProjectedPrice => portfolio.totalProjectedPrice;
+  String? get totalProjectedPriceCurrency =>
+      portfolio.totalProjectedPriceCurrency;
+  bool get swipeChipHintDismissed => chart.swipeChipHintDismissed;
+  bool get priceSwipeHintDismissed => chart.priceSwipeHintDismissed;
+  bool get showPriceDelta => chart.showPriceDelta;
   AppState copyWith({
     List<Stack>? stacks,
     Currency? currency,
@@ -163,255 +98,121 @@ class AppState {
     bool? swipeChipHintDismissed,
     bool? priceSwipeHintDismissed,
     bool? showPriceDelta,
-  }) {
-    return AppState(
-      stacks: stacks ?? this.stacks,
-      currency: currency ?? this.currency,
-      selectedCurrencies: selectedCurrencies ?? this.selectedCurrencies,
-      showPortfolio: showPortfolio ?? this.showPortfolio,
-      showChart: showChart ?? this.showChart,
-      chartHeight: chartHeight ?? this.chartHeight,
-      theme: theme ?? this.theme,
-      darkVariant: darkVariant ?? this.darkVariant,
-      lightVariant: lightVariant ?? this.lightVariant,
-      btcRange: btcRange ?? this.btcRange,
-      daysOverflowQuickRange:
-          daysOverflowQuickRange ?? this.daysOverflowQuickRange,
-      weeksOverflowQuickRange:
-          weeksOverflowQuickRange ?? this.weeksOverflowQuickRange,
-      overflowQuickRange: overflowQuickRange ?? this.overflowQuickRange,
-      monthsOverflowQuickRange:
-          monthsOverflowQuickRange ?? this.monthsOverflowQuickRange,
-      logScale: logScale ?? this.logScale,
-      btcDisplayMode: btcDisplayMode ?? this.btcDisplayMode,
-      stacksAuthMode: stacksAuthMode ?? this.stacksAuthMode,
-      stacksLockTimeout: stacksLockTimeout ?? this.stacksLockTimeout,
-      language: language ?? this.language,
-      livePriceCadence: livePriceCadence ?? this.livePriceCadence,
-      converterCurrency: converterCurrency ?? this.converterCurrency,
-      converterBtcMode: converterBtcMode ?? this.converterBtcMode,
-      converterMode: converterMode ?? this.converterMode,
-      converterFiatModeRaw: converterFiatModeRaw ?? this.converterFiatModeRaw,
-      converterFiatModeActiveSlot: converterFiatModeActiveSlot ??
-          this.converterFiatModeActiveSlot,
-      converterSatsModeRaw: converterSatsModeRaw ?? this.converterSatsModeRaw,
-      converterSatsModeActiveSlot: converterSatsModeActiveSlot ??
-          this.converterSatsModeActiveSlot,
-      homeWidgetOrder: homeWidgetOrder ?? this.homeWidgetOrder,
-      totalImageData: clearTotalImage
-          ? null
-          : (totalImageData ?? this.totalImageData),
-      totalColorKey: clearTotalColor
-          ? null
-          : (totalColorKey ?? this.totalColorKey),
-      totalProjectedPrice: clearTotalProjectedPrice
-          ? null
-          : (totalProjectedPrice ?? this.totalProjectedPrice),
-      totalProjectedPriceCurrency:
-          clearTotalProjectedPrice ? null : (totalProjectedPriceCurrency ?? this.totalProjectedPriceCurrency),
-      swipeChipHintDismissed:
-          swipeChipHintDismissed ?? this.swipeChipHintDismissed,
-      priceSwipeHintDismissed:
-          priceSwipeHintDismissed ?? this.priceSwipeHintDismissed,
-      showPriceDelta: showPriceDelta ?? this.showPriceDelta,
-    );
-  }
+    PortfolioState? portfolio,
+    CurrencyPreferences? currencies,
+    AppearancePreferences? appearance,
+    ChartPreferences? chart,
+    SecurityPreferences? security,
+    ConverterPreferences? converter,
+  }) => AppState(
+    portfolio:
+        portfolio ??
+        ((stacks != null ||
+                showPortfolio != null ||
+                homeWidgetOrder != null ||
+                totalImageData != null ||
+                totalColorKey != null ||
+                totalProjectedPrice != null ||
+                totalProjectedPriceCurrency != null ||
+                clearTotalImage ||
+                clearTotalColor ||
+                clearTotalProjectedPrice)
+            ? this.portfolio.copyWith(
+                stacks: stacks,
+                showPortfolio: showPortfolio,
+                homeWidgetOrder: homeWidgetOrder,
+                totalImageData: totalImageData,
+                totalColorKey: totalColorKey,
+                totalProjectedPrice: totalProjectedPrice,
+                totalProjectedPriceCurrency: totalProjectedPriceCurrency,
+                clearTotalImage: clearTotalImage,
+                clearTotalColor: clearTotalColor,
+                clearTotalProjectedPrice: clearTotalProjectedPrice,
+              )
+            : this.portfolio),
+    currencies:
+        currencies ??
+        ((currency != null || selectedCurrencies != null)
+            ? this.currencies.copyWith(
+                currency: currency,
+                selectedCurrencies: selectedCurrencies,
+              )
+            : this.currencies),
+    appearance:
+        appearance ??
+        ((theme != null ||
+                darkVariant != null ||
+                lightVariant != null ||
+                language != null ||
+                btcDisplayMode != null)
+            ? this.appearance.copyWith(
+                theme: theme,
+                darkVariant: darkVariant,
+                lightVariant: lightVariant,
+                language: language,
+                btcDisplayMode: btcDisplayMode,
+              )
+            : this.appearance),
+    chart:
+        chart ??
+        ((showChart != null ||
+                chartHeight != null ||
+                btcRange != null ||
+                daysOverflowQuickRange != null ||
+                weeksOverflowQuickRange != null ||
+                overflowQuickRange != null ||
+                monthsOverflowQuickRange != null ||
+                logScale != null ||
+                livePriceCadence != null ||
+                swipeChipHintDismissed != null ||
+                priceSwipeHintDismissed != null ||
+                showPriceDelta != null)
+            ? this.chart.copyWith(
+                showChart: showChart,
+                chartHeight: chartHeight,
+                btcRange: btcRange,
+                daysOverflowQuickRange: daysOverflowQuickRange,
+                weeksOverflowQuickRange: weeksOverflowQuickRange,
+                overflowQuickRange: overflowQuickRange,
+                monthsOverflowQuickRange: monthsOverflowQuickRange,
+                logScale: logScale,
+                livePriceCadence: livePriceCadence,
+                swipeChipHintDismissed: swipeChipHintDismissed,
+                priceSwipeHintDismissed: priceSwipeHintDismissed,
+                showPriceDelta: showPriceDelta,
+              )
+            : this.chart),
+    security:
+        security ??
+        ((stacksAuthMode != null || stacksLockTimeout != null)
+            ? this.security.copyWith(
+                authMode: stacksAuthMode,
+                lockTimeout: stacksLockTimeout,
+              )
+            : this.security),
+    converter:
+        converter ??
+        ((converterCurrency != null ||
+                converterBtcMode != null ||
+                converterMode != null ||
+                converterFiatModeRaw != null ||
+                converterFiatModeActiveSlot != null ||
+                converterSatsModeRaw != null ||
+                converterSatsModeActiveSlot != null)
+            ? this.converter.copyWith(
+                currency: converterCurrency,
+                btcMode: converterBtcMode,
+                mode: converterMode,
+                fiatModeRaw: converterFiatModeRaw,
+                fiatModeActiveSlot: converterFiatModeActiveSlot,
+                satsModeRaw: converterSatsModeRaw,
+                satsModeActiveSlot: converterSatsModeActiveSlot,
+              )
+            : this.converter),
+  );
 
-  Map<String, dynamic> toJson() => {
-        'stacks': stacks.map((s) => s.toJson()).toList(),
-        'currency': currency.code,
-        'selectedCurrencies': [for (final c in selectedCurrencies) c.code],
-        'showPortfolio': showPortfolio,
-        'showChart': showChart,
-        'chartHeight': chartHeight.code,
-        'theme': theme.code,
-        'darkVariant': darkVariant.code,
-        'lightVariant': lightVariant.code,
-        'btcRange': btcRange.code,
-        'daysOverflowQuickRange': daysOverflowQuickRange.code,
-        'weeksOverflowQuickRange': weeksOverflowQuickRange.code,
-        'overflowQuickRange': overflowQuickRange.code,
-        'monthsOverflowQuickRange': monthsOverflowQuickRange.code,
-        'logScale': logScale,
-        'bitcoinDisplayMode': btcDisplayMode.code,
-        'stacksAuthMode': stacksAuthMode.code,
-        'stacksLockTimeout': stacksLockTimeout.code,
-        'language': language.code,
-        'livePriceCadence': livePriceCadence.code,
-        if (converterCurrency != null) 'converterCurrency': converterCurrency!.code,
-        if (converterBtcMode != null) 'converterBtcMode': converterBtcMode!.code,
-        if (converterMode != null) 'converterMode': converterMode,
-        if (converterFiatModeRaw != null)
-          'converterFiatModeRaw': converterFiatModeRaw,
-        if (converterFiatModeActiveSlot != null)
-          'converterFiatModeActiveSlot': converterFiatModeActiveSlot,
-        if (converterSatsModeRaw != null)
-          'converterSatsModeRaw': converterSatsModeRaw,
-        if (converterSatsModeActiveSlot != null)
-          'converterSatsModeActiveSlot': converterSatsModeActiveSlot,
-        'homeWidgetOrder': [for (final w in homeWidgetOrder) w.code],
-        if (totalImageData != null) 'totalImageData': totalImageData,
-        if (totalColorKey != null) 'totalColorKey': totalColorKey,
-        if (totalProjectedPrice != null) 'totalProjectedPrice': totalProjectedPrice,
-        if (totalProjectedPriceCurrency != null) 'totalProjectedPriceCurrency': totalProjectedPriceCurrency,
-        'swipeChipHintDismissed': swipeChipHintDismissed,
-        'priceSwipeHintDismissed': priceSwipeHintDismissed,
-        'showPriceDelta': showPriceDelta,
-      };
-
-  factory AppState.fromJson(Map<String, dynamic> json) {
-    final rawStacks = json['stacks'];
-    final stacks = rawStacks is List
-        ? rawStacks.map(Stack.fromJson).whereType<Stack>().toList()
-        : const <Stack>[];
-
-    // Reads json[key] as a nullable String and forwards it to fromCode. Every
-    // enum's fromCode returns its own documented default when the input is
-    // null or unknown, so missing/garbage keys don't need handling here.
-    T fromCode<T>(String key, T Function(String?) parse) =>
-        parse(json[key] as String?);
-
-    final currency = fromCode('currency', Currency.fromCode);
-    final selectedCurrencies =
-        _parseSelectedCurrencies(json['selectedCurrencies'], currency);
-
-    return AppState(
-      stacks: stacks,
-      currency: currency,
-      selectedCurrencies: selectedCurrencies,
-      showPortfolio: json['showPortfolio'] as bool? ?? false,
-      showChart: json['showChart'] as bool? ?? true,
-      chartHeight: ChartHeight.fromCode(json['chartHeight'] as String?),
-      theme: fromCode('theme', AppTheme.fromCode),
-      darkVariant: fromCode('darkVariant', DarkVariant.fromCode),
-      lightVariant: fromCode('lightVariant', LightVariant.fromCode),
-      // btcRange is special-cased like the overflow chips: a missing key means
-      // first launch, so land on the intended default (all) rather than
-      // BtcRange.fromCode's general fallback (y10).
-      btcRange: json['btcRange'] is String
-          ? BtcRange.fromCode(json['btcRange'] as String)
-          : BtcRange.all,
-      // The overflow chips are special-cased: a missing key (vs. a wrong code)
-      // means "the user has never opened the picker", so land on the default
-      // slot rather than BtcRange.fromCode's general default.
-      daysOverflowQuickRange: json['daysOverflowQuickRange'] is String
-          ? BtcRange.fromCode(json['daysOverflowQuickRange'] as String)
-          : BtcRange.d1,
-      weeksOverflowQuickRange: json['weeksOverflowQuickRange'] is String
-          ? BtcRange.fromCode(json['weeksOverflowQuickRange'] as String)
-          : BtcRange.w1,
-      overflowQuickRange: json['overflowQuickRange'] is String
-          ? BtcRange.fromCode(json['overflowQuickRange'] as String)
-          : BtcRange.y10,
-      monthsOverflowQuickRange: json['monthsOverflowQuickRange'] is String
-          ? BtcRange.fromCode(json['monthsOverflowQuickRange'] as String)
-          : BtcRange.m6,
-      logScale: json['logScale'] as bool? ?? true,
-      btcDisplayMode:
-          fromCode('bitcoinDisplayMode', BtcDisplayMode.fromCode),
-      stacksAuthMode: fromCode('stacksAuthMode', StacksAuthMode.fromCode),
-      stacksLockTimeout:
-          fromCode('stacksLockTimeout', StacksLockTimeout.fromCode),
-      language: fromCode('language', LanguagePref.fromCode),
-      livePriceCadence:
-          fromCode('livePriceCadence', LivePriceCadence.fromCode),
-      // Nullable: legacy installs and fresh ones both produce null; the
-      // converter screen seeds from [currency] on its first opened visit.
-      // Unknown codes also fall to null rather than silently snapping to USD.
-      converterCurrency: switch (json['converterCurrency']) {
-        final String code => Currency.values
-            .where((c) => c.code == code)
-            .cast<Currency?>()
-            .firstWhere((_) => true, orElse: () => null),
-        _ => null,
-      },
-      // Same null-friendly read as [converterCurrency]: unknown / missing
-      // codes leave the field null so the converter seeds from the global
-      // setting on its next visit.
-      converterBtcMode: switch (json['converterBtcMode']) {
-        final String code => BtcDisplayMode.values
-            .where((m) => m.code == code)
-            .cast<BtcDisplayMode?>()
-            .firstWhere((_) => true, orElse: () => null),
-        _ => null,
-      },
-      converterMode: json['converterMode'] as String?,
-      converterFiatModeRaw: json['converterFiatModeRaw'] as String?,
-      converterFiatModeActiveSlot:
-          json['converterFiatModeActiveSlot'] as String?,
-      converterSatsModeRaw: json['converterSatsModeRaw'] as String?,
-      converterSatsModeActiveSlot:
-          json['converterSatsModeActiveSlot'] as String?,
-      homeWidgetOrder: _parseHomeWidgetOrder(json['homeWidgetOrder']),
-      totalImageData: json['totalImageData'] is String
-          ? json['totalImageData'] as String
-          : null,
-      totalColorKey: json['totalColorKey'] is String
-          ? json['totalColorKey'] as String
-          : null,
-      totalProjectedPrice: json['totalProjectedPrice'] is num
-          ? (json['totalProjectedPrice'] as num).toDouble()
-          : null,
-      totalProjectedPriceCurrency: json['totalProjectedPriceCurrency'] as String?,
-      swipeChipHintDismissed:
-          json['swipeChipHintDismissed'] as bool? ?? false,
-      priceSwipeHintDismissed:
-          json['priceSwipeHintDismissed'] as bool? ?? false,
-      showPriceDelta: json['showPriceDelta'] as bool? ?? false,
-    );
-  }
-
-  // Pre-existing installs won't have `selectedCurrencies` in their JSON; fall
-  // back to a single-element list of the active currency so the swipe gesture
-  // opens the picker (the documented 1-element behavior) until they pick more.
-  static List<Currency> _parseSelectedCurrencies(
-    Object? raw,
-    Currency fallbackCurrent,
-  ) {
-    if (raw is! List) return [fallbackCurrent];
-    final out = <Currency>[];
-    for (final item in raw) {
-      if (item is! String) continue;
-      // Skip unknown codes rather than silently coercing to the fallback —
-      // `Currency.fromCode` would otherwise turn every garbage entry into a
-      // duplicate of `fallbackCurrent`.
-      final match = Currency.values
-          .where((c) => c.code == item)
-          .cast<Currency?>()
-          .firstWhere((_) => true, orElse: () => null);
-      if (match == null) continue;
-      if (!out.contains(match)) out.add(match);
-    }
-    if (out.isEmpty) return [fallbackCurrent];
-    if (!out.contains(fallbackCurrent)) {
-      // The persisted current currency must be in the cycle list so the swipe
-      // gesture can find it.
-      out.insert(0, fallbackCurrent);
-    }
-    return out;
-  }
-
-  // Parses [HomeWidget] codes from JSON, preserving the user's order while
-  // filling in any enum values missing from the persisted list. Removed enum
-  // values get silently dropped (fromCode returns null for unknown codes).
-  // Newly-added values are appended at the end.
-  static List<HomeWidget> _parseHomeWidgetOrder(Object? raw) {
-    const fallback = [
-      HomeWidget.stacks,
-    ];
-    if (raw is! List) return fallback;
-    final out = <HomeWidget>[];
-    for (final item in raw) {
-      if (item is! String) continue;
-      final match = HomeWidget.fromCode(item);
-      if (match == null) continue;
-      if (!out.contains(match)) out.add(match);
-    }
-    for (final w in HomeWidget.values) {
-      if (out.contains(w)) continue;
-      out.add(w);
-    }
-    return out;
-  }
+  Map<String, dynamic> toJson({bool includeStacks = true}) =>
+      AppStateCodec.encode(this, includeStacks: includeStacks);
+  factory AppState.fromJson(Map<String, dynamic> json) =>
+      AppStateCodec.decode(json);
 }
-

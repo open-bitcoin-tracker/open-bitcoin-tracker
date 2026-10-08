@@ -33,9 +33,9 @@ class StacksUnlockOrchestrator {
     required AppStateNotifier app,
     required StacksAuthService auth,
     required StacksCryptoService crypto,
-  })  : _app = app,
-        _auth = auth,
-        _crypto = crypto;
+  }) : _app = app,
+       _auth = auth,
+       _crypto = crypto;
 
   final AppStateNotifier _app;
   final StacksAuthService _auth;
@@ -159,5 +159,4 @@ class StacksUnlockOrchestrator {
     _app.clearStacks();
     await _app.clearEncryptionAndSave();
   }
-
 }

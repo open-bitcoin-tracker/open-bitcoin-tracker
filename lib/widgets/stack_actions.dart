@@ -69,7 +69,8 @@ Future<StackAction?> showStackActionsSheet(
                   MenuActionTile(
                     leading: const Icon(Icons.face_outlined),
                     label: l10n.stackMenuChangeAvatar,
-                    onTap: () => Navigator.of(ctx).pop(StackAction.changeAvatar),
+                    onTap: () =>
+                        Navigator.of(ctx).pop(StackAction.changeAvatar),
                   ),
                   MenuActionTile(
                     leading: const Icon(Icons.delete_outline),
@@ -126,7 +127,9 @@ Future<bool?> showDeleteStackDialog(BuildContext context) {
               Text(
                 l10n.dialogDeleteStackTitle,
                 textAlign: TextAlign.center,
-                style: AppTypography.title.copyWith(fontWeight: FontWeight.w500),
+                style: AppTypography.title.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
@@ -145,8 +148,9 @@ Future<bool?> showDeleteStackDialog(BuildContext context) {
                   style: FilledButton.styleFrom(
                     backgroundColor: cs.error,
                     foregroundColor: Colors.white,
-                    textStyle:
-                        AppTypography.title.copyWith(fontWeight: FontWeight.w500),
+                    textStyle: AppTypography.title.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppSpacing.radius),
                     ),
@@ -165,8 +169,9 @@ Future<bool?> showDeleteStackDialog(BuildContext context) {
                   style: FilledButton.styleFrom(
                     backgroundColor: cs.outlineVariant,
                     foregroundColor: cs.onSurface,
-                    textStyle:
-                        AppTypography.title.copyWith(fontWeight: FontWeight.w500),
+                    textStyle: AppTypography.title.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppSpacing.radius),
                     ),

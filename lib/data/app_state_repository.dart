@@ -20,7 +20,7 @@ import 'stack.dart';
 /// `stacksEnc: null` and silently destroy the user's stacks.
 class AppStateRepository {
   AppStateRepository(this._prefs, {StacksCryptoService? crypto})
-      : _crypto = crypto ?? StacksCryptoService();
+    : _crypto = crypto ?? StacksCryptoService();
 
   static const String storageKey = 'btc_tracker';
 
@@ -95,15 +95,19 @@ class AppStateRepository {
   }
 
   Future<void> _save(AppState state, {List<int>? dek}) async {
-    final json = state.toJson();
+    final json = state.toJson(
+      includeStacks: dek == null && _lastStacksEnc == null,
+    );
 
     if (dek != null) {
-      final reusable = _lastStacksEnc != null &&
+      final reusable =
+          _lastStacksEnc != null &&
           identical(state.stacks, _lastEncryptedStacks) &&
           identical(dek, _lastEncryptedDek);
       if (!reusable) {
-        final stacksJson =
-            jsonEncode(state.stacks.map((s) => s.toJson()).toList());
+        final stacksJson = jsonEncode(
+          state.stacks.map((s) => s.toJson()).toList(),
+        );
         _lastStacksEnc = await _crypto.encryptString(stacksJson, dek);
         _lockedStackCount = state.stacks.length;
         _lastEncryptedStacks = state.stacks;

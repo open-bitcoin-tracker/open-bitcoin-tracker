@@ -20,8 +20,7 @@ class _MemStorage extends Fake implements FlutterSecureStorage {
     WebOptions? webOptions,
     MacOsOptions? mOptions,
     WindowsOptions? wOptions,
-  }) async =>
-      map[key];
+  }) async => map[key];
 
   @override
   Future<void> write({
@@ -78,9 +77,9 @@ void main() {
     int? elapsedNow;
 
     StacksAuthService service() => StacksAuthService(
-          storage: storage,
-          elapsedRealtimeMs: () async => elapsedNow,
-        );
+      storage: storage,
+      elapsedRealtimeMs: () async => elapsedNow,
+    );
 
     setUp(() {
       storage = _MemStorage();
@@ -125,62 +124,72 @@ void main() {
       expect(remaining!.inSeconds, inInclusiveRange(18, 20));
     });
 
-    test('monotonic cooldown expires after the duration actually elapses',
-        () async {
-      final s = service();
-      await failTimes(s, 5);
-      elapsedNow = elapsedNow! + 31000;
-      // Wall deadline also rolled past (clock untouched, 31s later is
-      // simulated by rewriting the stored deadline).
-      storage.map['stacks_auth_cooldown_until'] = DateTime.now()
-          .toUtc()
-          .subtract(const Duration(seconds: 1))
-          .toIso8601String();
-      expect(await s.getRemainingCooldown(), isNull);
-    });
+    test(
+      'monotonic cooldown expires after the duration actually elapses',
+      () async {
+        final s = service();
+        await failTimes(s, 5);
+        elapsedNow = elapsedNow! + 31000;
+        // Wall deadline also rolled past (clock untouched, 31s later is
+        // simulated by rewriting the stored deadline).
+        storage.map['stacks_auth_cooldown_until'] = DateTime.now()
+            .toUtc()
+            .subtract(const Duration(seconds: 1))
+            .toIso8601String();
+        expect(await s.getRemainingCooldown(), isNull);
+      },
+    );
 
-    test('reboot (monotonic clock reset) falls back to the wall clock',
-        () async {
-      final s = service();
-      await failTimes(s, 5);
-      // After reboot elapsedRealtime restarts near zero, below the anchor.
-      elapsedNow = 5;
-      final remaining = await s.getRemainingCooldown();
-      // Wall deadline still applies.
-      expect(remaining, isNotNull);
-      expect(remaining!.inSeconds, inInclusiveRange(28, 30));
-    });
+    test(
+      'reboot (monotonic clock reset) falls back to the wall clock',
+      () async {
+        final s = service();
+        await failTimes(s, 5);
+        // After reboot elapsedRealtime restarts near zero, below the anchor.
+        elapsedNow = 5;
+        final remaining = await s.getRemainingCooldown();
+        // Wall deadline still applies.
+        expect(remaining, isNotNull);
+        expect(remaining!.inSeconds, inInclusiveRange(28, 30));
+      },
+    );
 
-    test('without a monotonic source behavior matches wall clock only',
-        () async {
-      elapsedNow = null;
-      final s = service();
-      await failTimes(s, 5);
-      expect(storage.map.containsKey('stacks_auth_cooldown_anchor_elapsed'),
-          isFalse);
-      final remaining = await s.getRemainingCooldown();
-      expect(remaining, isNotNull);
-      expect(remaining!.inSeconds, inInclusiveRange(28, 30));
-    });
+    test(
+      'without a monotonic source behavior matches wall clock only',
+      () async {
+        elapsedNow = null;
+        final s = service();
+        await failTimes(s, 5);
+        expect(
+          storage.map.containsKey('stacks_auth_cooldown_anchor_elapsed'),
+          isFalse,
+        );
+        final remaining = await s.getRemainingCooldown();
+        expect(remaining, isNotNull);
+        expect(remaining!.inSeconds, inInclusiveRange(28, 30));
+      },
+    );
 
-    test('resetFailures clears the count, deadline, and monotonic anchor',
-        () async {
-      final s = service();
-      await failTimes(s, 6);
-      await s.resetFailures();
-      expect(await s.getFailureCount(), 0);
-      expect(await s.getRemainingCooldown(), isNull);
-      expect(storage.map, isEmpty);
-    });
+    test(
+      'resetFailures clears the count, deadline, and monotonic anchor',
+      () async {
+        final s = service();
+        await failTimes(s, 6);
+        await s.resetFailures();
+        expect(await s.getFailureCount(), 0);
+        expect(await s.getRemainingCooldown(), isNull);
+        expect(storage.map, isEmpty);
+      },
+    );
   });
 
   group('setPin / verifyPin (worker-isolate Argon2id)', () {
     late _MemStorage storage;
 
     StacksAuthService service() => StacksAuthService(
-          storage: storage,
-          elapsedRealtimeMs: () async => 1000000,
-        );
+      storage: storage,
+      elapsedRealtimeMs: () async => 1000000,
+    );
 
     setUp(() {
       storage = _MemStorage();
@@ -197,20 +206,23 @@ void main() {
     // A hash written directly with the shared primitives — byte-identical
     // to what the pre-isolate code persisted — must still verify, or
     // existing users would be locked out by the refactor.
-    test('PIN hash written by the old main-isolate code still verifies',
-        () async {
-      final salt = List<int>.generate(16, (i) => (i * 13) % 256);
-      final derived = await buildStacksArgon2id().deriveKey(
-        secretKey: SecretKey(utf8.encode('1234')),
-        nonce: salt,
-      );
-      storage.map['stacks_auth_pin_hash'] =
-          base64.encode(await derived.extractBytes());
-      storage.map['stacks_auth_pin_salt'] = base64.encode(salt);
+    test(
+      'PIN hash written by the old main-isolate code still verifies',
+      () async {
+        final salt = List<int>.generate(16, (i) => (i * 13) % 256);
+        final derived = await buildStacksArgon2id().deriveKey(
+          secretKey: SecretKey(utf8.encode('1234')),
+          nonce: salt,
+        );
+        storage.map['stacks_auth_pin_hash'] = base64.encode(
+          await derived.extractBytes(),
+        );
+        storage.map['stacks_auth_pin_salt'] = base64.encode(salt);
 
-      final s = service();
-      expect(await s.verifyPin('1234'), isTrue);
-      expect(await s.verifyPin('4321'), isFalse);
-    });
+        final s = service();
+        expect(await s.verifyPin('1234'), isTrue);
+        expect(await s.verifyPin('4321'), isFalse);
+      },
+    );
   });
 }

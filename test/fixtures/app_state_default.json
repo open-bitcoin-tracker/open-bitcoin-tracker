@@ -1,0 +1,30 @@
+{
+  "stacks": [],
+  "currency": "USD",
+  "selectedCurrencies": [
+    "USD"
+  ],
+  "showPortfolio": false,
+  "showChart": true,
+  "chartHeight": "xl",
+  "theme": "system",
+  "darkVariant": "blue",
+  "lightVariant": "cream",
+  "btcRange": "All",
+  "daysOverflowQuickRange": "1D",
+  "weeksOverflowQuickRange": "1W",
+  "overflowQuickRange": "10Y",
+  "monthsOverflowQuickRange": "6M",
+  "logScale": true,
+  "bitcoinDisplayMode": "btc",
+  "stacksAuthMode": "off",
+  "stacksLockTimeout": "5m",
+  "language": "system",
+  "livePriceCadence": "live",
+  "homeWidgetOrder": [
+    "stacks"
+  ],
+  "swipeChipHintDismissed": false,
+  "priceSwipeHintDismissed": false,
+  "showPriceDelta": false
+}

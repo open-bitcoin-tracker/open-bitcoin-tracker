@@ -6,8 +6,9 @@ import 'package:flutter/services.dart';
 /// non-Android) they degrade to a no-op / null rather than throwing, so lock
 /// state changes and cooldown checks never fail on the channel's account.
 abstract final class PlatformSecurity {
-  static const _channel =
-      MethodChannel('com.openbitcointracker.app/platform_security');
+  static const _channel = MethodChannel(
+    'com.openbitcointracker.app/platform_security',
+  );
 
   /// Adds or clears FLAG_SECURE on the activity window. While set, the
   /// recents thumbnail is blanked and screenshots/screen capture are blocked.

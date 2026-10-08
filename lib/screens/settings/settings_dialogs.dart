@@ -34,11 +34,7 @@ IconData _authModeIcon(StacksAuthMode m) {
 /// lock is still off, so first-time setup can pick a mode without the extra
 /// dialog hop.
 class AuthModeRow extends StatelessWidget {
-  const AuthModeRow({
-    super.key,
-    required this.mode,
-    required this.onTap,
-  });
+  const AuthModeRow({super.key, required this.mode, required this.onTap});
 
   final StacksAuthMode mode;
   final VoidCallback onTap;
@@ -62,7 +58,11 @@ class AuthModeRow extends StatelessWidget {
           child: Row(
             children: [
               MenuIconSquare(
-                icon: Icon(_authModeIcon(mode), size: 22, color: cs.onSurfaceVariant),
+                icon: Icon(
+                  _authModeIcon(mode),
+                  size: 22,
+                  color: cs.onSurfaceVariant,
+                ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -75,11 +75,7 @@ class AuthModeRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(
-                Icons.chevron_right,
-                size: 22,
-                color: cs.onSurfaceVariant,
-              ),
+              Icon(Icons.chevron_right, size: 22, color: cs.onSurfaceVariant),
             ],
           ),
         ),
@@ -162,7 +158,6 @@ class LockTimeoutRow extends StatelessWidget {
   }
 }
 
-
 /// Picker dialog that lists the on-states (pin, device) so the user can pick
 /// or swap which auth mode locks their stacks. Off is excluded — turning the
 /// lock off goes through the dedicated [SettingsActionTile] so we can confirm
@@ -188,14 +183,18 @@ Future<StacksAuthMode?> showAuthModePicker(
               Text(
                 l10n.settingsAuthType,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 12),
-              for (final m in StacksAuthMode.values
-                  .where((m) => m != StacksAuthMode.off)
-                  .toList()
-                  .asMap()
-                  .entries) ...[
+              for (final m
+                  in StacksAuthMode.values
+                      .where((m) => m != StacksAuthMode.off)
+                      .toList()
+                      .asMap()
+                      .entries) ...[
                 if (m.key > 0)
                   Divider(
                     height: 1,
@@ -237,7 +236,10 @@ Future<StacksLockTimeout?> showTimeoutPicker(
               Text(
                 l10n.settingsRelockAfter,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 12),
               for (final entry in StacksLockTimeout.values.asMap().entries) ...[
@@ -290,7 +292,9 @@ Future<void> showBiometricNotEnrolledDialog(BuildContext context) {
               Text(
                 l10n.dialogNoBiometricTitle,
                 textAlign: TextAlign.center,
-                style: AppTypography.title.copyWith(fontWeight: FontWeight.w500),
+                style: AppTypography.title.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
@@ -356,7 +360,9 @@ Future<void> showDeviceUnavailableDialog(BuildContext context) {
               Text(
                 l10n.dialogDeviceUnavailableTitle,
                 textAlign: TextAlign.center,
-                style: AppTypography.title.copyWith(fontWeight: FontWeight.w500),
+                style: AppTypography.title.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
@@ -421,7 +427,9 @@ Future<bool?> showForgetPinDialog(BuildContext context) {
               Text(
                 l10n.dialogForgetPinTitle,
                 textAlign: TextAlign.center,
-                style: AppTypography.title.copyWith(fontWeight: FontWeight.w500),
+                style: AppTypography.title.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(

@@ -58,32 +58,32 @@ class OrangePrimaryButton extends StatelessWidget {
                 child: label == null && icon == null
                     ? const Icon(Icons.check, size: 28, color: Colors.white)
                     : icon != null && label != null
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(icon, size: 20, color: Colors.white),
-                              const SizedBox(width: 8),
-                              Text(
-                                label!,
-                                style: AppTypography.title.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          )
-                        : Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: fullWidth ? 0 : AppSpacing.lg,
-                            ),
-                            child: Text(
-                              label!,
-                              style: AppTypography.title.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(icon, size: 20, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Text(
+                            label!,
+                            style: AppTypography.title.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
+                        ],
+                      )
+                    : Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: fullWidth ? 0 : AppSpacing.lg,
+                        ),
+                        child: Text(
+                          label!,
+                          style: AppTypography.title.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
               ),
             ),
           ),

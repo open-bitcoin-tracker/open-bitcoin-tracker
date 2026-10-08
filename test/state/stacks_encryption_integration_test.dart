@@ -28,10 +28,12 @@ void main() {
 
   group('first-time PIN setup migrates plaintext stacks to ciphertext', () {
     test('non-empty stacks: plaintext gone, ciphertext present', () async {
-      final h = await build(initialPrefs: const {
-        'btc_tracker':
-            '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
-      });
+      final h = await build(
+        initialPrefs: const {
+          'btc_tracker':
+              '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
+        },
+      );
       expect(h.notifier.stacks.length, 1);
 
       // Simulate the first-PIN setup flow.
@@ -44,20 +46,22 @@ void main() {
       expect(raw, isNot(contains('Cold'))); // name not visible in ciphertext
     });
 
-    test('empty stacks first-PIN setup yields no ciphertext for nothing',
-        () async {
-      final h = await build();
-      expect(h.notifier.stacks, isEmpty);
+    test(
+      'empty stacks first-PIN setup yields no ciphertext for nothing',
+      () async {
+        final h = await build();
+        expect(h.notifier.stacks, isEmpty);
 
-      final dek = await h.crypto.initWithPin('pw');
-      await h.notifier.adoptDek(dek);
+        final dek = await h.crypto.initWithPin('pw');
+        await h.notifier.adoptDek(dek);
 
-      // After adopting an empty stacks list, the envelope encrypts an empty
-      // JSON list — still produces a stacksEnc field, which is correct: the
-      // user has now opted into encryption, even with zero stacks.
-      final raw = h.prefs.getString('btc_tracker')!;
-      expect(raw, contains('stacksEnc'));
-    });
+        // After adopting an empty stacks list, the envelope encrypts an empty
+        // JSON list — still produces a stacksEnc field, which is correct: the
+        // user has now opted into encryption, even with zero stacks.
+        final raw = h.prefs.getString('btc_tracker')!;
+        expect(raw, contains('stacksEnc'));
+      },
+    );
   });
 
   group('lock / unlock cycle', () {
@@ -65,10 +69,12 @@ void main() {
         'unlock', () async {
       // Pretend the user already migrated in a previous session. Manually
       // construct the on-disk state by running a setup once...
-      final setup = await build(initialPrefs: const {
-        'btc_tracker':
-            '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
-      });
+      final setup = await build(
+        initialPrefs: const {
+          'btc_tracker':
+              '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
+        },
+      );
       final dek = await setup.crypto.initWithPin('1234');
       await setup.notifier.adoptDek(dek);
       final encryptedRaw = setup.prefs.getString('btc_tracker')!;
@@ -98,10 +104,12 @@ void main() {
     });
 
     test('relock clears in-memory stacks but leaves disk envelope', () async {
-      final h = await build(initialPrefs: const {
-        'btc_tracker':
-            '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
-      });
+      final h = await build(
+        initialPrefs: const {
+          'btc_tracker':
+              '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
+        },
+      );
       final dek = await h.crypto.initWithPin('pw');
       await h.notifier.adoptDek(dek);
       final encryptedRawBefore = h.prefs.getString('btc_tracker')!;
@@ -115,14 +123,16 @@ void main() {
     });
 
     test('settings save while locked re-emits envelope unchanged', () async {
-      final h = await build(initialPrefs: const {
-        'btc_tracker':
-            '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
-      });
+      final h = await build(
+        initialPrefs: const {
+          'btc_tracker':
+              '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
+        },
+      );
       final dek = await h.crypto.initWithPin('pw');
       await h.notifier.adoptDek(dek);
-      final beforeBlob = jsonDecode(h.prefs.getString('btc_tracker')!)
-          as Map<String, dynamic>;
+      final beforeBlob =
+          jsonDecode(h.prefs.getString('btc_tracker')!) as Map<String, dynamic>;
 
       h.notifier.relock();
       h.notifier.setCurrency(Currency.eur);
@@ -131,8 +141,8 @@ void main() {
       h.notifier.didChangeAppLifecycleState(AppLifecycleState.paused);
       await pumpEventQueue();
 
-      final afterBlob = jsonDecode(h.prefs.getString('btc_tracker')!)
-          as Map<String, dynamic>;
+      final afterBlob =
+          jsonDecode(h.prefs.getString('btc_tracker')!) as Map<String, dynamic>;
       expect(afterBlob['currency'], 'EUR');
       expect(afterBlob['stacksEnc'], beforeBlob['stacksEnc']);
       expect(afterBlob.containsKey('stacks'), isFalse);
@@ -142,21 +152,24 @@ void main() {
   group('unlocked save-path envelope reuse', () {
     test('settings-only save reuses the envelope byte-for-byte (no '
         're-encryption)', () async {
-      final h = await build(initialPrefs: const {
-        'btc_tracker':
-            '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
-      });
+      final h = await build(
+        initialPrefs: const {
+          'btc_tracker':
+              '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
+        },
+      );
       final dek = await h.crypto.initWithPin('pw');
       await h.notifier.adoptDek(dek);
-      final envBefore = (jsonDecode(h.prefs.getString('btc_tracker')!)
-          as Map<String, dynamic>)['stacksEnc'];
+      final envBefore =
+          (jsonDecode(h.prefs.getString('btc_tracker')!)
+              as Map<String, dynamic>)['stacksEnc'];
 
       h.notifier.setCurrency(Currency.eur);
       h.notifier.flushPendingSave();
       await pumpEventQueue();
 
-      final blob = jsonDecode(h.prefs.getString('btc_tracker')!)
-          as Map<String, dynamic>;
+      final blob =
+          jsonDecode(h.prefs.getString('btc_tracker')!) as Map<String, dynamic>;
       expect(blob['currency'], 'EUR');
       // AES-GCM uses a random nonce, so a byte-identical envelope proves the
       // stacks were not re-encrypted — and definitely not nulled out.
@@ -164,38 +177,46 @@ void main() {
       expect(blob.containsKey('stacks'), isFalse);
     });
 
-    test('stack mutation re-encrypts: new envelope, correct round-trip',
-        () async {
-      final h = await build(initialPrefs: const {
-        'btc_tracker':
-            '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
-      });
-      final dek = await h.crypto.initWithPin('pw');
-      await h.notifier.adoptDek(dek);
-      final envBefore = (jsonDecode(h.prefs.getString('btc_tracker')!)
-          as Map<String, dynamic>)['stacksEnc'];
+    test(
+      'stack mutation re-encrypts: new envelope, correct round-trip',
+      () async {
+        final h = await build(
+          initialPrefs: const {
+            'btc_tracker':
+                '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
+          },
+        );
+        final dek = await h.crypto.initWithPin('pw');
+        await h.notifier.adoptDek(dek);
+        final envBefore =
+            (jsonDecode(h.prefs.getString('btc_tracker')!)
+                as Map<String, dynamic>)['stacksEnc'];
 
-      h.notifier.addStack(const Stack(id: 'b', name: 'Hot', sats: 5));
-      await pumpEventQueue();
+        h.notifier.addStack(const Stack(id: 'b', name: 'Hot', sats: 5));
+        await pumpEventQueue();
 
-      final blob = jsonDecode(h.prefs.getString('btc_tracker')!)
-          as Map<String, dynamic>;
-      expect(blob['stacksEnc'], isNotNull);
-      expect(blob['stacksEnc'], isNot(envBefore));
-      expect(blob['lockedStackCount'], 2);
+        final blob =
+            jsonDecode(h.prefs.getString('btc_tracker')!)
+                as Map<String, dynamic>;
+        expect(blob['stacksEnc'], isNotNull);
+        expect(blob['stacksEnc'], isNot(envBefore));
+        expect(blob['lockedStackCount'], 2);
 
-      // New stacks are prepended to the top of the list.
-      final stacks = await h.repo.decryptStacks(dek);
-      expect(stacks!.map((s) => s.name), ['Hot', 'Cold']);
-    });
+        // New stacks are prepended to the top of the list.
+        final stacks = await h.repo.decryptStacks(dek);
+        expect(stacks!.map((s) => s.name), ['Hot', 'Cold']);
+      },
+    );
   });
 
   group('PIN change preserves stacks', () {
     test('rewrap with new PIN, decrypt envelope on next unlock', () async {
-      final h = await build(initialPrefs: const {
-        'btc_tracker':
-            '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
-      });
+      final h = await build(
+        initialPrefs: const {
+          'btc_tracker':
+              '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
+        },
+      );
       final dek = await h.crypto.initWithPin('old');
       await h.notifier.adoptDek(dek);
 
@@ -215,10 +236,12 @@ void main() {
 
   group('disable-lock decrypt-back path', () {
     test('clearEncryptionAndSave returns blob to plaintext form', () async {
-      final h = await build(initialPrefs: const {
-        'btc_tracker':
-            '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
-      });
+      final h = await build(
+        initialPrefs: const {
+          'btc_tracker':
+              '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
+        },
+      );
       final dek = await h.crypto.initWithPin('pw');
       await h.notifier.adoptDek(dek);
 
@@ -230,13 +253,14 @@ void main() {
       expect(raw, isNot(contains('stacksEnc')));
     });
 
-    test(
-        'disable-lock immediately after a stack mutation does not leave an '
+    test('disable-lock immediately after a stack mutation does not leave an '
         'orphan envelope (write-chain race)', () async {
-      final h = await build(initialPrefs: const {
-        'btc_tracker':
-            '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
-      });
+      final h = await build(
+        initialPrefs: const {
+          'btc_tracker':
+              '{"currency":"USD","stacks":[{"id":"a","name":"Cold","sats":100}]}',
+        },
+      );
       final dek = await h.crypto.initWithPin('pw');
       await h.notifier.adoptDek(dek);
 
@@ -251,8 +275,11 @@ void main() {
       await pumpEventQueue();
 
       final raw = h.prefs.getString('btc_tracker')!;
-      expect(raw, isNot(contains('stacksEnc')),
-          reason: 'no encrypted envelope should survive disabling the lock');
+      expect(
+        raw,
+        isNot(contains('stacksEnc')),
+        reason: 'no encrypted envelope should survive disabling the lock',
+      );
       final blob = jsonDecode(raw) as Map<String, dynamic>;
       expect(blob.containsKey('stacks'), isTrue);
       expect(blob['stacks'], isEmpty);
@@ -293,8 +320,14 @@ void main() {
 }
 
 class _Harness {
-  _Harness(this.prefs, this.secure, this.bio, this.crypto, this.repo,
-      this.notifier);
+  _Harness(
+    this.prefs,
+    this.secure,
+    this.bio,
+    this.crypto,
+    this.repo,
+    this.notifier,
+  );
   final SharedPreferences prefs;
   final _FakeSecureStorage secure;
   final _FakeBioVault bio;
@@ -322,8 +355,7 @@ class _FakeSecureStorage implements FlutterSecureStorage {
     WebOptions? webOptions,
     MacOsOptions? mOptions,
     WindowsOptions? wOptions,
-  }) async =>
-      _data[key];
+  }) async => _data[key];
 
   @override
   Future<void> write({

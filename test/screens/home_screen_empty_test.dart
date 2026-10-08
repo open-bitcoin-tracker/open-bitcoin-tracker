@@ -1,3 +1,4 @@
+import '../support/test_viewport.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -20,8 +21,7 @@ Future<(Widget, AppStateNotifier)> _wrap(
   String? initialState,
   required VoidCallback onAddStack,
 }) async {
-  await tester.binding.setSurfaceSize(const Size(800, 1200));
-  addTearDown(() => tester.binding.setSurfaceSize(null));
+  setTestViewport(tester, const Size(800, 1200));
   SharedPreferences.setMockInitialValues(
     initialState == null ? const {} : {'btc_tracker': initialState},
   );
@@ -51,9 +51,7 @@ Future<(Widget, AppStateNotifier)> _wrap(
       ),
     ],
     child: MaterialApp(
-      home: HomeScreen(
-        onAddStack: onAddStack,
-      ),
+      home: HomeScreen(onAddStack: onAddStack),
       theme: AppThemes.light(),
       locale: const Locale('en', 'GB'),
       supportedLocales: const [Locale('en', 'GB'), Locale('es', 'ES')],
@@ -90,11 +88,12 @@ void main() {
       // Verify that the 'Stacks' header is not rendered when empty.
       expect(find.text('Stacks'), findsNothing);
 
-      // Verify background color is grey (surfaceContainer from ColorScheme)
+      // Preserve the existing orange call-to-action styling.
       final button = tester.widget<FilledButton>(buttonFinder);
-      final BuildContext context = tester.element(buttonFinder);
-      final cs = Theme.of(context).colorScheme;
-      expect(button.style?.backgroundColor?.resolve({}), cs.surfaceContainer);
+      expect(
+        button.style?.backgroundColor?.resolve({}),
+        AppColors.bitcoinOrange,
+      );
 
       // Tap the button and verify callback triggers.
       await tester.tap(buttonFinder);

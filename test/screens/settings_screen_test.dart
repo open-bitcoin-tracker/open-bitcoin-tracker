@@ -1,3 +1,4 @@
+import '../support/test_viewport.dart';
 import 'package:open_bitcoin_tracker/api/api.dart';
 import 'package:open_bitcoin_tracker/data/data.dart';
 import 'package:open_bitcoin_tracker/l10n/generated/app_localizations.dart';
@@ -31,8 +32,7 @@ Future<Widget> _host(
   Widget child, {
   required AppStateNotifier app,
 }) async {
-  await tester.binding.setSurfaceSize(const Size(800, 1600));
-  addTearDown(() => tester.binding.setSurfaceSize(null));
+  setTestViewport(tester, const Size(800, 1600));
   final prefs = await SharedPreferences.getInstance();
   final lock = StacksLockController(app: app);
   addTearDown(lock.dispose);
@@ -105,8 +105,7 @@ Future<void> _pumpCurrencyPicker(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('currency picker lists the available currencies',
-      (tester) async {
+  testWidgets('currency picker lists the available currencies', (tester) async {
     final app = await _notifier();
     await _pumpCurrencyPicker(tester, app);
 
@@ -115,38 +114,41 @@ void main() {
     expect(find.byKey(const ValueKey('currency-EUR')), findsOneWidget);
   });
 
-  testWidgets('adding EUR via picker extends selection without snapping current',
-      (tester) async {
-    final app = await _notifier(
-      initialState: '{"currency":"USD","selectedCurrencies":["USD"]}',
-    );
-    await _pumpCurrencyPicker(tester, app);
+  testWidgets(
+    'adding EUR via picker extends selection without snapping current',
+    (tester) async {
+      final app = await _notifier(
+        initialState: '{"currency":"USD","selectedCurrencies":["USD"]}',
+      );
+      await _pumpCurrencyPicker(tester, app);
 
-    await tester.tap(find.byKey(const ValueKey('currency-EUR')));
-    await tester.pump();
-    await tester.pageBack();
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('currency-EUR')));
+      await tester.pump();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
 
-    expect(app.selectedCurrencies, [Currency.usd, Currency.eur]);
-    // Current stays put — adding to the cycle list shouldn't change what's
-    // displayed on the home screen.
-    expect(app.currency, Currency.usd);
-  });
+      expect(app.selectedCurrencies, [Currency.usd, Currency.eur]);
+      // Current stays put — adding to the cycle list shouldn't change what's
+      // displayed on the home screen.
+      expect(app.currency, Currency.usd);
+    },
+  );
 
-  testWidgets('unchecking the active currency snaps current to first remaining',
-      (tester) async {
-    final app = await _notifier(
-      initialState: '{"currency":"EUR","selectedCurrencies":["USD","EUR"]}',
-    );
-    await _pumpCurrencyPicker(tester, app);
+  testWidgets(
+    'unchecking the active currency snaps current to first remaining',
+    (tester) async {
+      final app = await _notifier(
+        initialState: '{"currency":"EUR","selectedCurrencies":["USD","EUR"]}',
+      );
+      await _pumpCurrencyPicker(tester, app);
 
-    await tester.tap(find.byKey(const ValueKey('currency-EUR')));
-    await tester.pump();
-    await tester.pageBack();
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('currency-EUR')));
+      await tester.pump();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
 
-    expect(app.selectedCurrencies, [Currency.usd]);
-    expect(app.currency, Currency.usd);
-  });
-
+      expect(app.selectedCurrencies, [Currency.usd]);
+      expect(app.currency, Currency.usd);
+    },
+  );
 }

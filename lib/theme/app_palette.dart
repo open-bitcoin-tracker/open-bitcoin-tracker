@@ -12,33 +12,33 @@ class AppPalette extends ThemeExtension<AppPalette> {
   });
 
   const AppPalette.light()
-      : bitcoinOrange = AppColors.bitcoinOrange,
-        priceUp = AppColors.priceUp,
-        priceDown = AppColors.priceDown,
-        recessedSurface = null;
+    : bitcoinOrange = AppColors.bitcoinOrange,
+      priceUp = AppColors.priceUp,
+      priceDown = AppColors.priceDown,
+      recessedSurface = null;
 
   const AppPalette.dark()
-      : bitcoinOrange = AppColors.bitcoinOrangeDark,
-        priceUp = AppColors.priceUpDark,
-        priceDown = AppColors.priceDownDark,
-        recessedSurface = AppColors.recessedSurfaceDark;
+    : bitcoinOrange = AppColors.bitcoinOrangeDark,
+      priceUp = AppColors.priceUpDark,
+      priceDown = AppColors.priceDownDark,
+      recessedSurface = AppColors.recessedSurfaceDark;
 
   // Blue dark variant reuses the same accent + price colors as the black dark
   // variant — they were tuned for dark surfaces in general, not the specific
   // neutral.
   const AppPalette.darkBlue()
-      : bitcoinOrange = AppColors.bitcoinOrangeDark,
-        priceUp = AppColors.priceUpDark,
-        priceDown = AppColors.priceDownDark,
-        recessedSurface = AppColors.recessedSurfaceDarkBlue;
+    : bitcoinOrange = AppColors.bitcoinOrangeDark,
+      priceUp = AppColors.priceUpDark,
+      priceDown = AppColors.priceDownDark,
+      recessedSurface = AppColors.recessedSurfaceDarkBlue;
 
   // Pink light variant reuses the same accent + price colors as the cream
   // variant — they were tuned for warm light surfaces in general.
   const AppPalette.lightPink()
-      : bitcoinOrange = AppColors.bitcoinOrange,
-        priceUp = AppColors.priceUp,
-        priceDown = AppColors.priceDown,
-        recessedSurface = null;
+    : bitcoinOrange = AppColors.bitcoinOrange,
+      priceUp = AppColors.priceUp,
+      priceDown = AppColors.priceDown,
+      recessedSurface = null;
 
   final Color bitcoinOrange;
   final Color priceUp;
@@ -68,7 +68,8 @@ class AppPalette extends ThemeExtension<AppPalette> {
   AppPalette lerp(ThemeExtension<AppPalette>? other, double t) {
     if (other is! AppPalette) return this;
     return AppPalette(
-      bitcoinOrange: Color.lerp(bitcoinOrange, other.bitcoinOrange, t) ?? bitcoinOrange,
+      bitcoinOrange:
+          Color.lerp(bitcoinOrange, other.bitcoinOrange, t) ?? bitcoinOrange,
       priceUp: Color.lerp(priceUp, other.priceUp, t) ?? priceUp,
       priceDown: Color.lerp(priceDown, other.priceDown, t) ?? priceDown,
       recessedSurface: Color.lerp(recessedSurface, other.recessedSurface, t),

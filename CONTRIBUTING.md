@@ -52,6 +52,10 @@ In the terminal running `flutter run`, press:
 - `R` — Hot restart (resets state)
 - `q` — Quit
 
+### All checks
+
+Run `bash tools/check.sh` to install dependencies, verify Dart formatting, run static analysis, and execute the test suite. GitHub Actions runs the same command for pushes and pull requests, using Flutter 3.41.7.
+
 ### Static analysis
 
 ```bash
@@ -63,6 +67,8 @@ flutter analyze
 ```bash
 flutter test
 ```
+
+The suite includes storage compatibility, encrypted persistence, overlapping history requests, converter state, scrolling, range gestures, and visual regressions. Golden images in `test/goldens/` protect the existing screen appearance; update them only for intentional design changes.
 
 ## Build
 
@@ -102,9 +108,12 @@ The AAB must be ARM-only — building without `--target-platform` includes an x8
 
 ### Data layer
 
-- **`lib/data/`** — State management, persistence, and encryption
+- **`lib/data/`** — Immutable domain models, persistence, and encrypted storage
   - `AppStateRepository` — Encrypted stack storage + settings cache
-  - `BtcHistoryCache` — Local chart data (bundled + Kraken REST history)
+  - `AppState` — Portfolio, currency, appearance, chart, security, and converter preferences
+  - `AppStateCodec` — Backward-compatible flat JSON storage format
+  - `MarketHistoryRepository` — History loading, freshness, request deduplication, and offline fallback
+  - `BtcHistoryCache` — Local history cache
   - `BtcRatesCache` — Live BTC prices (Kraken WS ticker)
 
 ### API layer
@@ -112,17 +121,27 @@ The AAB must be ARM-only — building without `--target-platform` includes an x8
 - **`lib/api/`** — External integrations
   - `KrakenStreamService` — Kraken WebSocket v2 real-time price feed
   - `KrakenOhlcClient` — Kraken REST OHLC chart history endpoint
-  - `LivePriceController` — Reactive wrapper over the Kraken stream
 
 ### State management
 
 - **`lib/state/`** — `ChangeNotifier`-based reactive state
-  - `AppStateNotifier` — Root notifier for all app state
+  - `AppStateNotifier` — Settings and portfolio mutations with debounced persistence
+  - `ConverterState` — Converter inputs, mode, and persisted preferences
+  - `LivePriceController` — Stream lifecycle, publication cadence, and history coordination
+  - `ChartSeriesProjector` — Cached currency conversion and live-point projection
   - `StacksLockController` — Authentication + DEK management
+
+### App composition
+
+- **`lib/app/`** — Provider ownership, stable service lifetimes, locale, and the app shell
+- **`lib/main.dart`** — Startup only
 
 ### UI layer
 
-- **`lib/screens/`** — Main screens and layouts
+- **`lib/screens/`** — Feature screens and their local widgets
+  - Converter controls, slots, and pickers are separate from the screen coordinator
+  - Home range controls separate gestures, layout, labels, chips, and picker UI
+  - Stack rows use lazy slivers; chart geometry reuses historical points across live ticks
 - **`lib/widgets/`** — Reusable components
 - **`lib/theme/`** — Material Design 3 tokens and colors
 
@@ -141,8 +160,8 @@ The AAB must be ARM-only — building without `--target-platform` includes an x8
 ├── assets/            # Bundled data (Bitcoin history CSV, fonts, launcher icons)
 ├── lib/
 │   ├── api/           # API clients (Kraken WS/REST)
-│   ├── data/          # State, persistence, encryption
-│   ├── format/        # Display formatters (fiat, etc.)
+│   ├── app/           # App shell and provider composition
+│   ├── data/          # Domain models, preferences, persistence, encryption
 │   ├── l10n/          # Localization (10 languages — see Localization section)
 │   ├── screens/       # Main UI screens
 │   ├── services/      # Authentication, crypto, haptics
@@ -151,6 +170,7 @@ The AAB must be ARM-only — building without `--target-platform` includes an x8
 │   ├── widgets/       # Reusable UI components
 │   └── main.dart      # App entry point
 ├── test/              # Unit and widget tests (mirrors lib/ layout)
+├── tools/check.sh     # Formatting, analysis, and test checks
 └── pubspec.yaml       # Dart dependencies
 ```
 
@@ -229,8 +249,7 @@ The bundled `assets/btc_history.csv` is the offline fallback for chart ranges wh
 
 Before opening a PR, please make sure:
 
-- `flutter analyze` passes with no errors
-- `flutter test` passes
+- `bash tools/check.sh` passes
 - Changes follow the project's existing code style and patterns
 - New user-facing strings are added to **every** `.arb` file in `lib/l10n/`
 

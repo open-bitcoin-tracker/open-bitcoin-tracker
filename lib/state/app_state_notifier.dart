@@ -103,7 +103,8 @@ class AppStateNotifier extends ChangeNotifier with WidgetsBindingObserver {
   String? get converterSatsModeActiveSlot => _state.converterSatsModeActiveSlot;
   List<HomeWidget> get homeWidgetOrder => _state.homeWidgetOrder;
 
-  void setCurrency(Currency value) => _update((s) => s.copyWith(currency: value));
+  void setCurrency(Currency value) =>
+      _update((s) => s.copyWith(currency: value));
 
   /// Step the active currency through [selectedCurrencies] by [direction] (+1
   /// next, -1 previous), wrapping around. Returns true if the active currency
@@ -147,19 +148,21 @@ class AppStateNotifier extends ChangeNotifier with WidgetsBindingObserver {
   void setConverterFiatModeEntry({
     required String raw,
     required String activeSlot,
-  }) =>
-      _update((s) => s.copyWith(
-            converterFiatModeRaw: raw,
-            converterFiatModeActiveSlot: activeSlot,
-          ));
+  }) => _update(
+    (s) => s.copyWith(
+      converterFiatModeRaw: raw,
+      converterFiatModeActiveSlot: activeSlot,
+    ),
+  );
   void setConverterSatsModeEntry({
     required String raw,
     required String activeSlot,
-  }) =>
-      _update((s) => s.copyWith(
-            converterSatsModeRaw: raw,
-            converterSatsModeActiveSlot: activeSlot,
-          ));
+  }) => _update(
+    (s) => s.copyWith(
+      converterSatsModeRaw: raw,
+      converterSatsModeActiveSlot: activeSlot,
+    ),
+  );
 
   /// Replace the user's picked currencies. Order matters — it's the order the
   /// home-screen swipe gesture cycles through. The list is deduplicated; if the
@@ -172,25 +175,32 @@ class AppStateNotifier extends ChangeNotifier with WidgetsBindingObserver {
     }
     if (unique.isEmpty) return;
     final shouldSnap = !unique.contains(_state.currency);
-    _update((s) => s.copyWith(
-          selectedCurrencies: unique,
-          currency: shouldSnap ? unique.first : s.currency,
-        ));
+    _update(
+      (s) => s.copyWith(
+        selectedCurrencies: unique,
+        currency: shouldSnap ? unique.first : s.currency,
+      ),
+    );
   }
-  void setShowPortfolio(bool value) => _update((s) => s.copyWith(showPortfolio: value));
+
+  void setShowPortfolio(bool value) =>
+      _update((s) => s.copyWith(showPortfolio: value));
   void dismissSwipeChipHint() =>
       _update((s) => s.copyWith(swipeChipHintDismissed: true));
   void dismissPriceSwipeHint() =>
       _update((s) => s.copyWith(priceSwipeHintDismissed: true));
   void setShowChart(bool value) => _update((s) => s.copyWith(showChart: value));
-  void setShowPriceDelta(bool value) => _update((s) => s.copyWith(showPriceDelta: value));
-  void setChartHeight(ChartHeight value) => _update((s) => s.copyWith(chartHeight: value));
+  void setShowPriceDelta(bool value) =>
+      _update((s) => s.copyWith(showPriceDelta: value));
+  void setChartHeight(ChartHeight value) =>
+      _update((s) => s.copyWith(chartHeight: value));
   void setTheme(AppTheme value) => _update((s) => s.copyWith(theme: value));
   void setDarkVariant(DarkVariant value) =>
       _update((s) => s.copyWith(darkVariant: value));
   void setLightVariant(LightVariant value) =>
       _update((s) => s.copyWith(lightVariant: value));
-  void setBtcRange(BtcRange value) => _update((s) => s.copyWith(btcRange: value));
+  void setBtcRange(BtcRange value) =>
+      _update((s) => s.copyWith(btcRange: value));
   void setDaysOverflowQuickRange(BtcRange value) =>
       _update((s) => s.copyWith(daysOverflowQuickRange: value));
   void setWeeksOverflowQuickRange(BtcRange value) =>
@@ -213,37 +223,45 @@ class AppStateNotifier extends ChangeNotifier with WidgetsBindingObserver {
 
   // Total card avatar customization. Pass null to revert to the default
   // (initial-letter circle in the theme's bitcoinOrange).
-  void setTotalImageData(String? value) => _update((s) => value == null
-      ? s.copyWith(clearTotalImage: true)
-      : s.copyWith(totalImageData: value));
-  void setTotalColorKey(String? value) => _update((s) => value == null
-      ? s.copyWith(clearTotalColor: true)
-      : s.copyWith(totalColorKey: value));
-  void setTotalProjectedPrice(double? price, String currencyCode) =>
-      _update((s) => price == null
-          ? s.copyWith(clearTotalProjectedPrice: true)
-          : s.copyWith(
-              totalProjectedPrice: price,
-              totalProjectedPriceCurrency: currencyCode,
-            ));
+  void setTotalImageData(String? value) => _update(
+    (s) => value == null
+        ? s.copyWith(clearTotalImage: true)
+        : s.copyWith(totalImageData: value),
+  );
+  void setTotalColorKey(String? value) => _update(
+    (s) => value == null
+        ? s.copyWith(clearTotalColor: true)
+        : s.copyWith(totalColorKey: value),
+  );
+  void setTotalProjectedPrice(double? price, String currencyCode) => _update(
+    (s) => price == null
+        ? s.copyWith(clearTotalProjectedPrice: true)
+        : s.copyWith(
+            totalProjectedPrice: price,
+            totalProjectedPriceCurrency: currencyCode,
+          ),
+  );
 
-  void addStack(Stack stack) => _update((s) => s.copyWith(
-        stacks: [stack, ...s.stacks],
-      ));
+  void addStack(Stack stack) =>
+      _update((s) => s.copyWith(stacks: [stack, ...s.stacks]));
 
   void updateStack(String id, Stack Function(Stack) mutate) {
-    _update((s) => s.copyWith(
-          stacks: [
-            for (final stack in s.stacks)
-              if (stack.id == id) mutate(stack) else stack,
-          ],
-        ));
+    _update(
+      (s) => s.copyWith(
+        stacks: [
+          for (final stack in s.stacks)
+            if (stack.id == id) mutate(stack) else stack,
+        ],
+      ),
+    );
   }
 
   void removeStack(String id) {
-    _update((s) => s.copyWith(
-          stacks: s.stacks.where((stack) => stack.id != id).toList(),
-        ));
+    _update(
+      (s) => s.copyWith(
+        stacks: s.stacks.where((stack) => stack.id != id).toList(),
+      ),
+    );
   }
 
   void clearStacks() {
@@ -251,12 +269,14 @@ class AppStateNotifier extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void resetSettings() {
-    _update((s) => const AppState().copyWith(
-          stacks: s.stacks,
-          stacksAuthMode: s.stacksAuthMode,
-          stacksLockTimeout: s.stacksLockTimeout,
-          language: s.language,
-        ));
+    _update(
+      (s) => const AppState().copyWith(
+        stacks: s.stacks,
+        stacksAuthMode: s.stacksAuthMode,
+        stacksLockTimeout: s.stacksLockTimeout,
+        language: s.language,
+      ),
+    );
   }
 
   void reorderStacks(int oldIndex, int newIndex) {

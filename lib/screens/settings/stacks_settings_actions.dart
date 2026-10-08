@@ -64,7 +64,12 @@ abstract final class StacksSettingsActions {
     BuildContext context,
     AppStateNotifier app,
   ) async {
-    await _applyModeChange(context, app, app.stacksAuthMode, StacksAuthMode.off);
+    await _applyModeChange(
+      context,
+      app,
+      app.stacksAuthMode,
+      StacksAuthMode.off,
+    );
   }
 
   /// Auto-disable the lock once the user has deleted their last stack, leaving
@@ -132,7 +137,10 @@ abstract final class StacksSettingsActions {
       if (dek == null) {
         // Defensive: re-auth should have populated the DEK. If it didn't,
         // we're in legacy plaintext mode and the transition can't happen.
-        _toast(context, AppLocalizations.of(context).snackCouldNotEnableDeviceUnlock);
+        _toast(
+          context,
+          AppLocalizations.of(context).snackCouldNotEnableDeviceUnlock,
+        );
         return;
       }
       final bound = await orch.switchPinToDevice(dek);
@@ -163,9 +171,7 @@ abstract final class StacksSettingsActions {
     }
     // off → pin: collect a PIN; the setup screen mints + adopts the DEK.
     final result = await Navigator.of(context).push<Object?>(
-      MaterialPageRoute<Object?>(
-        builder: (_) => const PinEntryScreen.setup(),
-      ),
+      MaterialPageRoute<Object?>(builder: (_) => const PinEntryScreen.setup()),
     );
     if (result != true || !context.mounted) return;
     app.setStacksAuthMode(StacksAuthMode.pin);
@@ -196,21 +202,20 @@ abstract final class StacksSettingsActions {
 
   static Future<String?> _promptForNewPin(BuildContext context) async {
     return await Navigator.of(context).push<String>(
-      MaterialPageRoute<String>(
-        builder: (_) => const PinEntryScreen.collect(),
-      ),
+      MaterialPageRoute<String>(builder: (_) => const PinEntryScreen.collect()),
     );
   }
 
   static Future<void> changePin(BuildContext context) async {
     await Navigator.of(context).push<Object?>(
-      MaterialPageRoute<Object?>(
-        builder: (_) => const PinEntryScreen.change(),
-      ),
+      MaterialPageRoute<Object?>(builder: (_) => const PinEntryScreen.change()),
     );
   }
 
-  static Future<void> forgetPin(BuildContext context, AppStateNotifier app) async {
+  static Future<void> forgetPin(
+    BuildContext context,
+    AppStateNotifier app,
+  ) async {
     final confirmed = await showForgetPinDialog(context);
     if (confirmed != true || !context.mounted) return;
     await context.read<StacksUnlockOrchestrator>().resetEverything();
@@ -218,6 +223,8 @@ abstract final class StacksSettingsActions {
   }
 
   static void _toast(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

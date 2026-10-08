@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('AppState', () {
-    test('defaults match STORAGE.md', () {
+    test('defaults preserve current first-launch behaviour', () {
       const s = AppState();
       expect(s.stacks, isEmpty);
       expect(s.currency, Currency.usd);
-      expect(s.showPortfolio, true);
+      expect(s.showPortfolio, false);
 
       expect(s.theme, AppTheme.system);
       expect(s.btcRange, BtcRange.all);
@@ -27,10 +27,10 @@ void main() {
     });
 
     test('round-trips through JSON', () {
-      const original = AppState(
+      final original = const AppState().copyWith(
         stacks: [
-          Stack(id: 'a', name: 'Cold', sats: 100000000),
-          Stack(id: 'b', name: 'Hot', sats: 50000, isHidden: true),
+          const Stack(id: 'a', name: 'Cold', sats: 100000000),
+          const Stack(id: 'b', name: 'Hot', sats: 50000, isHidden: true),
         ],
         currency: Currency.eur,
         btcRange: BtcRange.y1,
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('totalImageData / totalColorKey round-trip through JSON', () {
-      const original = AppState(
+      final original = const AppState().copyWith(
         totalImageData: 'AAAB',
         totalColorKey: 'rust',
       );
@@ -90,19 +90,21 @@ void main() {
     });
 
     test('copyWith(clearTotalImage: true) nulls totalImageData', () {
-      const s = AppState(totalImageData: 'AAAB');
+      final s = const AppState().copyWith(totalImageData: 'AAAB');
       expect(s.copyWith(clearTotalImage: true).totalImageData, isNull);
     });
 
     test('copyWith(clearTotalColor: true) nulls totalColorKey', () {
-      const s = AppState(totalColorKey: 'amber');
+      final s = const AppState().copyWith(totalColorKey: 'amber');
       expect(s.copyWith(clearTotalColor: true).totalColorKey, isNull);
     });
 
     test('copyWith(clearTotalImage:) wins over totalImageData arg', () {
-      const s = AppState(totalImageData: 'AAAB');
+      final s = const AppState().copyWith(totalImageData: 'AAAB');
       expect(
-        s.copyWith(totalImageData: 'BBBC', clearTotalImage: true).totalImageData,
+        s
+            .copyWith(totalImageData: 'BBBC', clearTotalImage: true)
+            .totalImageData,
         isNull,
       );
     });

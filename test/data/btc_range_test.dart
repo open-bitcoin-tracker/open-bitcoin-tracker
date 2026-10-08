@@ -63,8 +63,13 @@ void main() {
         expect(r.isMonths, isTrue);
         expect(r.isYears, isFalse);
       }
-      for (final r in [BtcRange.d1, BtcRange.w1, BtcRange.y1,
-          BtcRange.y15, BtcRange.all]) {
+      for (final r in [
+        BtcRange.d1,
+        BtcRange.w1,
+        BtcRange.y1,
+        BtcRange.y15,
+        BtcRange.all,
+      ]) {
         expect(r.months, isNull, reason: '${r.name} is not month-shaped');
         expect(r.isMonths, isFalse);
       }
@@ -77,8 +82,13 @@ void main() {
         expect(r.isYears, isTrue);
         expect(r.isMonths, isFalse);
       }
-      for (final r in [BtcRange.d1, BtcRange.w1, BtcRange.m1, BtcRange.m12,
-          BtcRange.all]) {
+      for (final r in [
+        BtcRange.d1,
+        BtcRange.w1,
+        BtcRange.m1,
+        BtcRange.m12,
+        BtcRange.all,
+      ]) {
         expect(r.years, isNull, reason: '${r.name} is not year-shaped');
         expect(r.isYears, isFalse);
       }
@@ -86,15 +96,21 @@ void main() {
 
     test('isShortRange covers exactly d1..d7, w1..w4, and m1', () {
       for (final r in BtcRange.values) {
-        expect(r.isShortRange, r.isDays || r.isWeeks || r == BtcRange.m1,
-            reason: '${r.name} short-range mismatch');
+        expect(
+          r.isShortRange,
+          r.isDays || r.isWeeks || r == BtcRange.m1,
+          reason: '${r.name} short-range mismatch',
+        );
       }
     });
 
     test('usesAllHistory is the complement of isShortRange', () {
       for (final r in BtcRange.values) {
-        expect(r.usesAllHistory, !r.isShortRange,
-            reason: '${r.name} usesAllHistory mismatch');
+        expect(
+          r.usesAllHistory,
+          !r.isShortRange,
+          reason: '${r.name} usesAllHistory mismatch',
+        );
       }
     });
 

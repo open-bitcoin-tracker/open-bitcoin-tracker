@@ -7,14 +7,14 @@ import '../data/sats.dart';
 import '../l10n/generated/app_localizations.dart';
 
 String currencyLabel(AppLocalizations l10n, Currency c) => switch (c) {
-      Currency.usd => l10n.currencyLabelUsd,
-      Currency.eur => l10n.currencyLabelEur,
-      Currency.gbp => l10n.currencyLabelGbp,
-      Currency.aud => l10n.currencyLabelAud,
-      Currency.cad => l10n.currencyLabelCad,
-      Currency.chf => l10n.currencyLabelChf,
-      Currency.jpy => l10n.currencyLabelJpy,
-    };
+  Currency.usd => l10n.currencyLabelUsd,
+  Currency.eur => l10n.currencyLabelEur,
+  Currency.gbp => l10n.currencyLabelGbp,
+  Currency.aud => l10n.currencyLabelAud,
+  Currency.cad => l10n.currencyLabelCad,
+  Currency.chf => l10n.currencyLabelChf,
+  Currency.jpy => l10n.currencyLabelJpy,
+};
 
 const Map<Currency, String> currencySymbols = {
   Currency.usd: r'$',
@@ -45,12 +45,10 @@ class FiatFormat {
   final String symbol;
   final String amount;
 
-  String get full =>
-      symbolAfterAmount ? '$amount $symbol' : '$symbol $amount';
+  String get full => symbolAfterAmount ? '$amount $symbol' : '$symbol $amount';
 
   /// Like [full] but with no gap between the symbol and the amount.
-  String get tight =>
-      symbolAfterAmount ? '$amount$symbol' : '$symbol$amount';
+  String get tight => symbolAfterAmount ? '$amount$symbol' : '$symbol$amount';
 }
 
 /// The decimal separator character for the active locale (e.g. ',' in Spanish, '.' in English).
@@ -65,7 +63,11 @@ String get localeDecimalSeparator {
 NumberFormat get intFormatter =>
     NumberFormat.decimalPattern(Intl.defaultLocale);
 
-FiatFormat formatFiat(double value, Currency currency, {bool decimalsUnder10 = false}) {
+FiatFormat formatFiat(
+  double value,
+  Currency currency, {
+  bool decimalsUnder10 = false,
+}) {
   final symbol = currencySymbols[currency] ?? r'$';
   final locale = Intl.defaultLocale;
   final whole = NumberFormat.decimalPattern(locale);
@@ -164,8 +166,9 @@ String formatBtcAmount(
 }) {
   if (hidden) return '**** **** ****';
   final amount = switch (mode) {
-    BtcDisplayMode.sats =>
-      NumberFormat.decimalPattern(Intl.defaultLocale).format(sats),
+    BtcDisplayMode.sats => NumberFormat.decimalPattern(
+      Intl.defaultLocale,
+    ).format(sats),
     BtcDisplayMode.btc => _formatBtcFromSats(sats),
   };
   final gap = tight ? '' : ' ';
@@ -179,8 +182,9 @@ String _formatBtcFromSats(int sats) {
   if (sats == 0) return '0';
   final whole = sats ~/ Sats.perBtc;
   final fraction = sats.remainder(Sats.perBtc).abs();
-  final wholeStr =
-      NumberFormat.decimalPattern(Intl.defaultLocale).format(whole);
+  final wholeStr = NumberFormat.decimalPattern(
+    Intl.defaultLocale,
+  ).format(whole);
   if (fraction == 0) return wholeStr;
   var fracStr = fraction.toString().padLeft(8, '0');
   fracStr = fracStr.replaceFirst(RegExp(r'0+$'), '');

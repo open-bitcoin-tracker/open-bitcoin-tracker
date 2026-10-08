@@ -6,7 +6,9 @@ import 'package:open_bitcoin_tracker/theme/theme.dart';
 
 void main() {
   group('AreaChart Scale Fade Transition', () {
-    testWidgets('fades out and fades in when toggling logScale', (tester) async {
+    testWidgets('fades out and fades in when toggling logScale', (
+      tester,
+    ) async {
       const data = [
         PricePoint(1000, 10.0),
         PricePoint(2000, 100.0),

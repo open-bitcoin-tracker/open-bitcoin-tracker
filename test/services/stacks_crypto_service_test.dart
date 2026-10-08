@@ -57,7 +57,10 @@ void main() {
       await crypto.initWithPin('pw');
       final stored = await storage.read(key: 'stacks_crypto_dek_wrapped_pin');
       final tampered = _flipByteInEnvelope(stored!, field: 'c');
-      await storage.write(key: 'stacks_crypto_dek_wrapped_pin', value: tampered);
+      await storage.write(
+        key: 'stacks_crypto_dek_wrapped_pin',
+        value: tampered,
+      );
       expect(await crypto.unwrapDekWithPin('pw'), isNull);
     });
 
@@ -114,27 +117,32 @@ void main() {
       );
     });
 
-    test('PIN wrap written by the old main-isolate code still unwraps',
-        () async {
-      final salt = List<int>.generate(16, (i) => (i * 7) % 256);
-      final dek = List<int>.generate(32, (i) => 255 - i);
-      final kek = await buildStacksArgon2id().deriveKey(
-        secretKey: SecretKey(utf8.encode('1234')),
-        nonce: salt,
-      );
-      final box = await AesGcm.with256bits().encrypt(
-        dek,
-        secretKey: SecretKey(await kek.extractBytes()),
-      );
-      await storage.write(
-          key: 'stacks_crypto_kdf_salt', value: base64.encode(salt));
-      await storage.write(
+    test(
+      'PIN wrap written by the old main-isolate code still unwraps',
+      () async {
+        final salt = List<int>.generate(16, (i) => (i * 7) % 256);
+        final dek = List<int>.generate(32, (i) => 255 - i);
+        final kek = await buildStacksArgon2id().deriveKey(
+          secretKey: SecretKey(utf8.encode('1234')),
+          nonce: salt,
+        );
+        final box = await AesGcm.with256bits().encrypt(
+          dek,
+          secretKey: SecretKey(await kek.extractBytes()),
+        );
+        await storage.write(
+          key: 'stacks_crypto_kdf_salt',
+          value: base64.encode(salt),
+        );
+        await storage.write(
           key: 'stacks_crypto_dek_wrapped_pin',
-          value: _encodeV1Envelope(box));
+          value: _encodeV1Envelope(box),
+        );
 
-      expect(await crypto.unwrapDekWithPin('1234'), dek);
-      expect(await crypto.unwrapDekWithPin('9999'), isNull);
-    });
+        expect(await crypto.unwrapDekWithPin('1234'), dek);
+        expect(await crypto.unwrapDekWithPin('9999'), isNull);
+      },
+    );
 
     test('stacks envelope written by the old main-isolate code still '
         'decrypts', () async {
@@ -144,8 +152,10 @@ void main() {
         utf8.encode(plaintext),
         secretKey: SecretKey(dek),
       );
-      expect(await crypto.decryptString(_encodeV1Envelope(box), dek),
-          plaintext);
+      expect(
+        await crypto.decryptString(_encodeV1Envelope(box), dek),
+        plaintext,
+      );
     });
   });
 
@@ -187,20 +197,21 @@ void main() {
       expect(await crypto.unwrapDekWithBiometric(), isNull);
     });
 
-    test('biometric slot invalidation surfaces as null (re-enroll path)',
-        () async {
-      final dek = await crypto.initWithPin('pw');
-      await crypto.addBiometricWrap(dek);
-      // Simulate the OS-level fingerprint-changed event the real plugin
-      // handles by silently deleting the keystore-bound slot.
-      bio.simulateInvalidation();
-      expect(await crypto.unwrapDekWithBiometric(), isNull);
-      // PIN path is unaffected — that's the user's recovery route.
-      expect(await crypto.unwrapDekWithPin('pw'), dek);
-    });
+    test(
+      'biometric slot invalidation surfaces as null (re-enroll path)',
+      () async {
+        final dek = await crypto.initWithPin('pw');
+        await crypto.addBiometricWrap(dek);
+        // Simulate the OS-level fingerprint-changed event the real plugin
+        // handles by silently deleting the keystore-bound slot.
+        bio.simulateInvalidation();
+        expect(await crypto.unwrapDekWithBiometric(), isNull);
+        // PIN path is unaffected — that's the user's recovery route.
+        expect(await crypto.unwrapDekWithPin('pw'), dek);
+      },
+    );
 
-    test('user cancels biometric prompt → null (no exception leaks)',
-        () async {
+    test('user cancels biometric prompt → null (no exception leaks)', () async {
       final dek = await crypto.initWithPin('pw');
       await crypto.addBiometricWrap(dek);
       bio.nextReadThrowsCancel = true;
@@ -211,18 +222,22 @@ void main() {
 
 /// Encode a SecretBox in the persisted v1 envelope format, exactly as the
 /// pre-isolate StacksCryptoService did on the main isolate.
-String _encodeV1Envelope(SecretBox box) =>
-    base64.encode(utf8.encode(jsonEncode({
+String _encodeV1Envelope(SecretBox box) => base64.encode(
+  utf8.encode(
+    jsonEncode({
       'v': 1,
       'n': base64.encode(box.nonce),
       'c': base64.encode(box.cipherText),
       'm': base64.encode(box.mac.bytes),
-    })));
+    }),
+  ),
+);
 
 /// Decode an envelope, flip one byte in the named base64 field, re-encode.
 String _flipByteInEnvelope(String envelopeStr, {required String field}) {
-  final outerJson = jsonDecode(utf8.decode(base64.decode(envelopeStr)))
-      as Map<String, dynamic>;
+  final outerJson =
+      jsonDecode(utf8.decode(base64.decode(envelopeStr)))
+          as Map<String, dynamic>;
   final bytes = base64.decode(outerJson[field] as String);
   bytes[0] = bytes[0] ^ 0xFF;
   outerJson[field] = base64.encode(bytes);
@@ -242,8 +257,7 @@ class _FakeSecureStorage implements FlutterSecureStorage {
     WebOptions? webOptions,
     MacOsOptions? mOptions,
     WindowsOptions? wOptions,
-  }) async =>
-      _data[key];
+  }) async => _data[key];
 
   @override
   Future<void> write({

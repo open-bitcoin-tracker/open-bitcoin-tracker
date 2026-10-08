@@ -32,14 +32,14 @@ class StacksAuthService {
     LocalAuthentication? localAuth,
     FlutterSecureStorage? storage,
     Future<int?> Function()? elapsedRealtimeMs,
-  })  : _auth = localAuth ?? LocalAuthentication(),
-        _storage = storage ??
-            const FlutterSecureStorage(
-              aOptions:
-                  AndroidOptions(encryptedSharedPreferences: true),
-            ),
-        _elapsedRealtimeMs =
-            elapsedRealtimeMs ?? PlatformSecurity.elapsedRealtimeMs;
+  }) : _auth = localAuth ?? LocalAuthentication(),
+       _storage =
+           storage ??
+           const FlutterSecureStorage(
+             aOptions: AndroidOptions(encryptedSharedPreferences: true),
+           ),
+       _elapsedRealtimeMs =
+           elapsedRealtimeMs ?? PlatformSecurity.elapsedRealtimeMs;
 
   static const _kPinHash = 'stacks_auth_pin_hash';
   static const _kPinSalt = 'stacks_auth_pin_salt';
@@ -158,10 +158,12 @@ class StacksAuthService {
   }
 
   Future<Duration?> _monotonicRemaining() async {
-    final anchor =
-        int.tryParse(await _storage.read(key: _kCooldownAnchorElapsed) ?? '');
-    final durationMs =
-        int.tryParse(await _storage.read(key: _kCooldownDurationMs) ?? '');
+    final anchor = int.tryParse(
+      await _storage.read(key: _kCooldownAnchorElapsed) ?? '',
+    );
+    final durationMs = int.tryParse(
+      await _storage.read(key: _kCooldownDurationMs) ?? '',
+    );
     if (anchor == null || durationMs == null) return null;
     final nowElapsed = await _elapsedRealtimeMs();
     if (nowElapsed == null) return null;
@@ -188,14 +190,20 @@ class StacksAuthService {
     final cooldown = cooldownFor(next);
     if (cooldown != null) {
       final until = DateTime.now().toUtc().add(cooldown);
-      await _storage.write(key: _kCooldownUntil, value: until.toIso8601String());
+      await _storage.write(
+        key: _kCooldownUntil,
+        value: until.toIso8601String(),
+      );
       final nowElapsed = await _elapsedRealtimeMs();
       if (nowElapsed != null) {
         await _storage.write(
-            key: _kCooldownAnchorElapsed, value: nowElapsed.toString());
+          key: _kCooldownAnchorElapsed,
+          value: nowElapsed.toString(),
+        );
         await _storage.write(
-            key: _kCooldownDurationMs,
-            value: cooldown.inMilliseconds.toString());
+          key: _kCooldownDurationMs,
+          value: cooldown.inMilliseconds.toString(),
+        );
       } else {
         await _storage.delete(key: _kCooldownAnchorElapsed);
         await _storage.delete(key: _kCooldownDurationMs);
@@ -205,9 +213,9 @@ class StacksAuthService {
   }
 
   Future<List<int>> _hash(String pin, List<int> salt) => compute(
-        _argon2Hash,
-        _Argon2HashArgs(pinBytes: utf8.encode(pin), salt: salt),
-      );
+    _argon2Hash,
+    _Argon2HashArgs(pinBytes: utf8.encode(pin), salt: salt),
+  );
 
   bool _constantTimeEquals(List<int> a, List<int> b) {
     if (a.length != b.length) return false;

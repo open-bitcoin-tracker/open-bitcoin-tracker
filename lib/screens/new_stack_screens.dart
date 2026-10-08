@@ -126,9 +126,7 @@ class _NewStackAmountScreenState extends State<NewStackAmountScreen> {
     final sats = _enteredSats(mode);
     if (sats == 0) return;
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => NewStackNameScreen(sats: sats),
-      ),
+      MaterialPageRoute<void>(builder: (_) => NewStackNameScreen(sats: sats)),
     );
   }
 
@@ -193,11 +191,13 @@ class _NewStackNameScreenState extends State<NewStackNameScreen>
     with StackNameScreenMixin {
   void _submit() {
     if (!isValid) return;
-    context.read<AppStateNotifier>().addStack(model.Stack(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          name: trimmed,
-          sats: widget.sats,
-        ));
+    context.read<AppStateNotifier>().addStack(
+      model.Stack(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: trimmed,
+        sats: widget.sats,
+      ),
+    );
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 

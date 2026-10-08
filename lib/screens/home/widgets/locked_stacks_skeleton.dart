@@ -33,17 +33,13 @@ class LockedStacksSkeleton extends StatelessWidget {
             position: count == 1
                 ? StackCardPosition.only
                 : i == 0
-                    ? StackCardPosition.first
-                    : i == count - 1
-                        ? StackCardPosition.last
-                        : StackCardPosition.middle,
+                ? StackCardPosition.first
+                : i == count - 1
+                ? StackCardPosition.last
+                : StackCardPosition.middle,
           ),
           if (i < count - 1)
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: cs.outlineVariant,
-            ),
+            Divider(height: 1, thickness: 1, color: cs.outlineVariant),
         ],
       ],
     );
@@ -80,10 +76,7 @@ class _SkeletonRow extends StatelessWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: shimmer,
-            ),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: shimmer),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

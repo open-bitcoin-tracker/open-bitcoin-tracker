@@ -108,18 +108,22 @@ class _PastValuesSectionState extends State<PastValuesSection> {
     for (var y = 1; now.year - y >= 2009; y++) {
       final at = DateTime(now.year - y, now.month, now.day);
       final price = _priceAt(history, at.millisecondsSinceEpoch);
-      allRows.add(_PastRow(
-        label: l10n.stackDetailYearAgo(y),
-        sublabel: dateFmt.format(at),
-        value: (price ?? 0) * widget.btcAmount,
-      ));
+      allRows.add(
+        _PastRow(
+          label: l10n.stackDetailYearAgo(y),
+          sublabel: dateFmt.format(at),
+          value: (price ?? 0) * widget.btcAmount,
+        ),
+      );
     }
 
     final needsToggle = allRows.length > _kDefaultRows;
-    final alwaysRows =
-        needsToggle ? allRows.take(_kDefaultRows).toList() : allRows;
-    final extraRows =
-        needsToggle ? allRows.skip(_kDefaultRows).toList() : <_PastRow>[];
+    final alwaysRows = needsToggle
+        ? allRows.take(_kDefaultRows).toList()
+        : allRows;
+    final extraRows = needsToggle
+        ? allRows.skip(_kDefaultRows).toList()
+        : <_PastRow>[];
 
     return DetailSection(
       verticalPadding: AppSpacing.xs,
@@ -388,11 +392,6 @@ class BtcAmountDisplay extends StatelessWidget {
       fontFeatures: const [ui.FontFeature.tabularFigures()],
     );
 
-    return Text(
-      formatted,
-      textAlign: TextAlign.center,
-      style: baseStyle,
-    );
+    return Text(formatted, textAlign: TextAlign.center, style: baseStyle);
   }
 }
-

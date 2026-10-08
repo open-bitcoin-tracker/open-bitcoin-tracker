@@ -139,25 +139,38 @@ enum BtcRange {
   // Number of days this range represents, or null if it isn't day-shaped.
   int? get days {
     switch (this) {
-      case BtcRange.d1: return 1;
-      case BtcRange.d2: return 2;
-      case BtcRange.d3: return 3;
-      case BtcRange.d4: return 4;
-      case BtcRange.d5: return 5;
-      case BtcRange.d6: return 6;
-      case BtcRange.d7: return 7;
-      default: return null;
+      case BtcRange.d1:
+        return 1;
+      case BtcRange.d2:
+        return 2;
+      case BtcRange.d3:
+        return 3;
+      case BtcRange.d4:
+        return 4;
+      case BtcRange.d5:
+        return 5;
+      case BtcRange.d6:
+        return 6;
+      case BtcRange.d7:
+        return 7;
+      default:
+        return null;
     }
   }
 
   // Number of weeks this range represents, or null if it isn't week-shaped.
   int? get weeks {
     switch (this) {
-      case BtcRange.w1: return 1;
-      case BtcRange.w2: return 2;
-      case BtcRange.w3: return 3;
-      case BtcRange.w4: return 4;
-      default: return null;
+      case BtcRange.w1:
+        return 1;
+      case BtcRange.w2:
+        return 2;
+      case BtcRange.w3:
+        return 3;
+      case BtcRange.w4:
+        return 4;
+      default:
+        return null;
     }
   }
 
@@ -165,41 +178,70 @@ enum BtcRange {
   // (m1..m12 → 1..12; everything else → null.)
   int? get months {
     switch (this) {
-      case BtcRange.m1: return 1;
-      case BtcRange.m2: return 2;
-      case BtcRange.m3: return 3;
-      case BtcRange.m4: return 4;
-      case BtcRange.m5: return 5;
-      case BtcRange.m6: return 6;
-      case BtcRange.m7: return 7;
-      case BtcRange.m8: return 8;
-      case BtcRange.m9: return 9;
-      case BtcRange.m10: return 10;
-      case BtcRange.m11: return 11;
-      case BtcRange.m12: return 12;
-      default: return null;
+      case BtcRange.m1:
+        return 1;
+      case BtcRange.m2:
+        return 2;
+      case BtcRange.m3:
+        return 3;
+      case BtcRange.m4:
+        return 4;
+      case BtcRange.m5:
+        return 5;
+      case BtcRange.m6:
+        return 6;
+      case BtcRange.m7:
+        return 7;
+      case BtcRange.m8:
+        return 8;
+      case BtcRange.m9:
+        return 9;
+      case BtcRange.m10:
+        return 10;
+      case BtcRange.m11:
+        return 11;
+      case BtcRange.m12:
+        return 12;
+      default:
+        return null;
     }
   }
 
   // Number of years this range represents, or null otherwise.
   int? get years {
     switch (this) {
-      case BtcRange.y1: return 1;
-      case BtcRange.y2: return 2;
-      case BtcRange.y3: return 3;
-      case BtcRange.y4: return 4;
-      case BtcRange.y5: return 5;
-      case BtcRange.y6: return 6;
-      case BtcRange.y7: return 7;
-      case BtcRange.y8: return 8;
-      case BtcRange.y9: return 9;
-      case BtcRange.y10: return 10;
-      case BtcRange.y11: return 11;
-      case BtcRange.y12: return 12;
-      case BtcRange.y13: return 13;
-      case BtcRange.y14: return 14;
-      case BtcRange.y15: return 15;
-      default: return null;
+      case BtcRange.y1:
+        return 1;
+      case BtcRange.y2:
+        return 2;
+      case BtcRange.y3:
+        return 3;
+      case BtcRange.y4:
+        return 4;
+      case BtcRange.y5:
+        return 5;
+      case BtcRange.y6:
+        return 6;
+      case BtcRange.y7:
+        return 7;
+      case BtcRange.y8:
+        return 8;
+      case BtcRange.y9:
+        return 9;
+      case BtcRange.y10:
+        return 10;
+      case BtcRange.y11:
+        return 11;
+      case BtcRange.y12:
+        return 12;
+      case BtcRange.y13:
+        return 13;
+      case BtcRange.y14:
+        return 14;
+      case BtcRange.y15:
+        return 15;
+      default:
+        return null;
     }
   }
 
@@ -219,14 +261,18 @@ enum BtcRange {
 }
 
 // Stable, sorted lists for each overflow slot's candidates.
-final List<BtcRange> btcRangeDays =
-    BtcRange.values.where((r) => r.isDays).toList(growable: false);
-final List<BtcRange> btcRangeWeeks =
-    BtcRange.values.where((r) => r.isWeeks).toList(growable: false);
-final List<BtcRange> btcRangeMonths =
-    BtcRange.values.where((r) => r.isMonths).toList(growable: false);
-final List<BtcRange> btcRangeYears =
-    BtcRange.values.where((r) => r.isYears).toList(growable: false);
+final List<BtcRange> btcRangeDays = BtcRange.values
+    .where((r) => r.isDays)
+    .toList(growable: false);
+final List<BtcRange> btcRangeWeeks = BtcRange.values
+    .where((r) => r.isWeeks)
+    .toList(growable: false);
+final List<BtcRange> btcRangeMonths = BtcRange.values
+    .where((r) => r.isMonths)
+    .toList(growable: false);
+final List<BtcRange> btcRangeYears = BtcRange.values
+    .where((r) => r.isYears)
+    .toList(growable: false);
 
 enum StacksAuthMode {
   off('off'),

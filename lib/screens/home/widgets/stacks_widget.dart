@@ -13,8 +13,8 @@ import '../../settings/reorder_stacks_screen.dart';
 import '../../settings/stacks_settings_actions.dart';
 import '../../stack_detail/stack_detail_screen.dart';
 
-class HomeStackList extends StatelessWidget {
-  const HomeStackList({
+class HomeStackSliver extends StatelessWidget {
+  const HomeStackSliver({
     super.key,
     required this.stacks,
     required this.currency,
@@ -33,28 +33,41 @@ class HomeStackList extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasTotal = totalCard != null;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (hasTotal)
-          _GroupedCardRow(
-            card: totalCard!,
-            position: stacks.isEmpty
-                ? StackCardPosition.only
-                : StackCardPosition.first,
-            isLast: stacks.isEmpty,
-          ),
-        for (var i = 0; i < stacks.length; i++)
-          _StackCardRow(
-            key: ValueKey(stacks[i].id),
-            stack: stacks[i],
+    final totalOffset = hasTotal ? 1 : 0;
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          if (hasTotal && index == 0) {
+            return _GroupedCardRow(
+              key: const ValueKey<HomeWidget>(HomeWidget.stacks),
+              card: totalCard!,
+              position: stacks.isEmpty
+                  ? StackCardPosition.only
+                  : StackCardPosition.first,
+              isLast: stacks.isEmpty,
+            );
+          }
+          final stackIndex = index - totalOffset;
+          return _StackCardRow(
+            key: ValueKey(stacks[stackIndex].id),
+            stack: stacks[stackIndex],
             currency: currency,
             btcDisplayMode: btcDisplayMode,
-            isFirst: i == 0 && !hasTotal,
-            isLast: i == stacks.length - 1,
+            isFirst: stackIndex == 0 && !hasTotal,
+            isLast: stackIndex == stacks.length - 1,
             canReorder: stacks.length > 1,
-          ),
-      ],
+          );
+        },
+        childCount: stacks.length + totalOffset,
+        findChildIndexCallback: (key) {
+          if (key == const ValueKey<HomeWidget>(HomeWidget.stacks)) {
+            return hasTotal ? 0 : null;
+          }
+          if (key is! ValueKey<String>) return null;
+          final index = stacks.indexWhere((stack) => stack.id == key.value);
+          return index < 0 ? null : index + totalOffset;
+        },
+      ),
     );
   }
 }
@@ -98,14 +111,10 @@ class _StackCardRowState extends State<_StackCardRow> {
             ? s.copyWith(clearColor: true)
             : s.copyWith(colorKey: key),
       ),
-      onImageSet: (base64) => app.updateStack(
-        stackId,
-        (s) => s.copyWith(imageData: base64),
-      ),
-      onImageCleared: () => app.updateStack(
-        stackId,
-        (s) => s.copyWith(clearImage: true),
-      ),
+      onImageSet: (base64) =>
+          app.updateStack(stackId, (s) => s.copyWith(imageData: base64)),
+      onImageCleared: () =>
+          app.updateStack(stackId, (s) => s.copyWith(clearImage: true)),
     );
   }
 
@@ -208,6 +217,7 @@ class _StackCardRowState extends State<_StackCardRow> {
 /// identically inside the same group.
 class _GroupedCardRow extends StatelessWidget {
   const _GroupedCardRow({
+    super.key,
     required this.card,
     required this.position,
     required this.isLast,
@@ -227,12 +237,7 @@ class _GroupedCardRow extends StatelessWidget {
           decoration: BoxDecoration(color: cs.surfaceContainerLow),
           child: card,
         ),
-        if (!isLast)
-          Divider(
-            height: 1,
-            thickness: 1,
-            color: cs.outlineVariant,
-          ),
+        if (!isLast) Divider(height: 1, thickness: 1, color: cs.outlineVariant),
       ],
     );
   }

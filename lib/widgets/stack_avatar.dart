@@ -59,8 +59,7 @@ class StackAvatar extends StatelessWidget {
     if (imageData != null) {
       // Decode at render resolution: avatars are stored 256×256 but drawn at
       // [size] logical px, so a full-size decode wastes ~4× the bitmap memory.
-      final cachePx =
-          (size * MediaQuery.devicePixelRatioOf(context)).round();
+      final cachePx = (size * MediaQuery.devicePixelRatioOf(context)).round();
       face = ClipOval(
         child: Image.memory(
           _decodedBytesFor(imageData!),

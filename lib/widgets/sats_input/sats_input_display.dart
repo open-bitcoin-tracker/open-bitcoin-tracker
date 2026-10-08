@@ -40,8 +40,8 @@ class SatsInputDisplay extends StatelessWidget {
     final formatted = input.isEmpty
         ? ''
         : (mode == BtcDisplayMode.btc
-            ? formatFiatRaw(input)
-            : intFormatter.format(int.parse(input)));
+              ? formatFiatRaw(input)
+              : intFormatter.format(int.parse(input)));
 
     const fontSize = 56.0;
     final digitStyle = AppTypography.title.copyWith(
@@ -96,13 +96,14 @@ class SatsInputDisplay extends StatelessWidget {
           addCaretIfHere();
           final before = rawConsumed;
           final after = rawConsumed + 1;
-          children.add(_TapDigit(
-            ch: ch,
-            style: digitStyle,
-            onTapBefore:
-                onCaretAt == null ? null : () => onCaretAt!(before),
-            onTapAfter: onCaretAt == null ? null : () => onCaretAt!(after),
-          ));
+          children.add(
+            _TapDigit(
+              ch: ch,
+              style: digitStyle,
+              onTapBefore: onCaretAt == null ? null : () => onCaretAt!(before),
+              onTapAfter: onCaretAt == null ? null : () => onCaretAt!(after),
+            ),
+          );
           rawConsumed = after;
         } else {
           // Group separator (or anything else) — doesn't appear in raw input.
@@ -116,9 +117,7 @@ class SatsInputDisplay extends StatelessWidget {
     final content = Container(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: p.bitcoinOrange),
-        ),
+        border: Border(bottom: BorderSide(color: p.bitcoinOrange)),
       ),
       child: SizedBox(
         height: fontSize * 1.2,

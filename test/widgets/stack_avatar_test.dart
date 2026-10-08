@@ -8,10 +8,12 @@ import 'package:open_bitcoin_tracker/theme/theme.dart';
 import 'package:open_bitcoin_tracker/widgets/stack_avatar.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) async {
-  await tester.pumpWidget(MaterialApp(
-    theme: AppThemes.light(),
-    home: Scaffold(body: Center(child: child)),
-  ));
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: AppThemes.light(),
+      home: Scaffold(body: Center(child: child)),
+    ),
+  );
 }
 
 String _tinyJpegBase64() {
@@ -22,8 +24,9 @@ String _tinyJpegBase64() {
 
 void main() {
   group('StackAvatar', () {
-    testWidgets('renders uppercase first character when imageData is null',
-        (tester) async {
+    testWidgets('renders uppercase first character when imageData is null', (
+      tester,
+    ) async {
       await _pump(tester, const StackAvatar(name: 'savings'));
       expect(find.text('S'), findsOneWidget);
       expect(find.byType(Image), findsNothing);
@@ -56,10 +59,7 @@ void main() {
 
     testWidgets('invokes onTap when tapped', (tester) async {
       var taps = 0;
-      await _pump(
-        tester,
-        StackAvatar(name: 'Cold', onTap: () => taps++),
-      );
+      await _pump(tester, StackAvatar(name: 'Cold', onTap: () => taps++));
       await tester.tap(find.byType(StackAvatar));
       expect(taps, 1);
     });

@@ -21,7 +21,9 @@ mixin StackNameScreenMixin<T extends StatefulWidget> on State<T> {
     _controller = TextEditingController(text: initialText)
       ..addListener(() => setState(() {}));
     _focusNode = FocusNode();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _focusNode.requestFocus());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _focusNode.requestFocus(),
+    );
   }
 
   @override

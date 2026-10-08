@@ -12,7 +12,8 @@ class Sats {
   static double toBtc(int sats) => sats / perBtc;
   static int fromBtc(double btc) => (btc * perBtc).round();
 
-  static double toFiat(int sats, double btcFiatRate) => toBtc(sats) * btcFiatRate;
+  static double toFiat(int sats, double btcFiatRate) =>
+      toBtc(sats) * btcFiatRate;
 
   /// Renders [sats] as a BTC raw string: integer + '.' + ≤8 fractional
   /// digits with trailing zeros trimmed. `0` returns `''` (empty raw input
@@ -48,7 +49,10 @@ class Sats {
         // First char: render as '0.' with caret after the dot.
         return ('0.', 2);
       }
-      return ('${input.substring(0, caret)}.${input.substring(caret)}', caret + 1);
+      return (
+        '${input.substring(0, caret)}.${input.substring(caret)}',
+        caret + 1,
+      );
     }
     if (input.contains('.')) {
       final dot = input.indexOf('.');
@@ -60,10 +64,7 @@ class Sats {
     // Strip the leading-zero rule from sats mode: "0.001" is valid, but reject
     // pure leading-zero integer parts like "07" (jump to "7" instead would
     // surprise the user mid-edit, so just block the insert).
-    if (ch == '0' &&
-        caret == 0 &&
-        input.isNotEmpty &&
-        !input.startsWith('0')) {
+    if (ch == '0' && caret == 0 && input.isNotEmpty && !input.startsWith('0')) {
       return null;
     }
     if (!_btcInputWithinSupply(next)) return null;
@@ -112,8 +113,9 @@ class Sats {
     if (lastSep < 0) {
       normalized = cleaned;
     } else {
-      final intPart =
-          cleaned.substring(0, lastSep).replaceAll(RegExp(r'[.,]'), '');
+      final intPart = cleaned
+          .substring(0, lastSep)
+          .replaceAll(RegExp(r'[.,]'), '');
       final fracPart = cleaned.substring(lastSep + 1);
       if (fracPart.contains(RegExp(r'[.,]'))) return null;
       normalized = fracPart.isEmpty ? intPart : '$intPart.$fracPart';

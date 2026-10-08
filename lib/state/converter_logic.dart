@@ -1,7 +1,7 @@
 import '../data/app_enums.dart';
 import '../data/sats.dart';
 import '../data/fiat.dart';
-import 'converter_state.dart';
+import '../data/converter_entry.dart';
 
 /// What unit a slot's raw string is interpreted in.
 ///
@@ -35,8 +35,7 @@ bool activeAllowsDecimal(
   ConverterMode mode,
   ConverterSlot active,
   BtcDisplayMode btcMode,
-) =>
-    slotUnit(mode, active, btcMode) != ConverterInputUnit.sats;
+) => slotUnit(mode, active, btcMode) != ConverterInputUnit.sats;
 
 /// Whether a leading '0' keystroke should be suppressed: sats input doesn't
 /// admit leading zeros, so an empty sats slot rejects the first '0'.
@@ -45,8 +44,7 @@ bool leadingZeroBlocked(
   ConverterSlot active,
   String raw,
   BtcDisplayMode btcMode,
-) =>
-    raw.isEmpty && slotUnit(mode, active, btcMode) == ConverterInputUnit.sats;
+) => raw.isEmpty && slotUnit(mode, active, btcMode) == ConverterInputUnit.sats;
 
 /// Both slots' raw strings for this build. The active slot is the user's
 /// in-progress input verbatim; the other is derived via the live BTC price
@@ -60,8 +58,9 @@ bool leadingZeroBlocked(
   required double rate,
 }) {
   final fromUnit = slotUnit(mode, active, btcMode);
-  final otherSlot =
-      active == ConverterSlot.top ? ConverterSlot.bottom : ConverterSlot.top;
+  final otherSlot = active == ConverterSlot.top
+      ? ConverterSlot.bottom
+      : ConverterSlot.top;
   final toUnit = slotUnit(mode, otherSlot, btcMode);
   final derived = convertRaw(raw, from: fromUnit, to: toUnit, rate: rate);
   return active == ConverterSlot.top

@@ -165,7 +165,10 @@ class _RangeConfigBar extends StatelessWidget {
         return Dialog(
           elevation: 24,
           shadowColor: Colors.black,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
+          ),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
             child: Column(
@@ -173,7 +176,10 @@ class _RangeConfigBar extends StatelessWidget {
               children: [
                 Text(
                   l10n.rangePickerLongTitle,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 ConstrainedBox(

@@ -43,82 +43,82 @@ class AppThemes {
   static ThemeData darkBlue() => _darkBlue ??= _buildDarkBlue();
 
   static ThemeData _buildLight() => _build(
-        base: ThemeData.light(useMaterial3: true),
-        colorScheme: const ColorScheme.light(
-          primary: AppColors.bitcoinOrange,
-          onPrimary: Colors.white,
-          surface: AppColors.surface,
-          surfaceContainerLow: AppColors.background,
-          surfaceContainer: AppColors.mutedSurface,
-          surfaceContainerHigh: Colors.white,
-          onSurface: AppColors.textPrimary,
-          onSurfaceVariant: AppColors.textMuted,
-          outlineVariant: AppColors.divider,
-          error: AppColors.danger,
-          onError: Colors.white,
-        ),
-        palette: const AppPalette.light(),
-        statusBarIconBrightness: Brightness.dark,
-        dialogBackgroundColor: AppColors.background,
-      );
+    base: ThemeData.light(useMaterial3: true),
+    colorScheme: const ColorScheme.light(
+      primary: AppColors.bitcoinOrange,
+      onPrimary: Colors.white,
+      surface: AppColors.surface,
+      surfaceContainerLow: AppColors.background,
+      surfaceContainer: AppColors.mutedSurface,
+      surfaceContainerHigh: Colors.white,
+      onSurface: AppColors.textPrimary,
+      onSurfaceVariant: AppColors.textMuted,
+      outlineVariant: AppColors.divider,
+      error: AppColors.danger,
+      onError: Colors.white,
+    ),
+    palette: const AppPalette.light(),
+    statusBarIconBrightness: Brightness.dark,
+    dialogBackgroundColor: AppColors.background,
+  );
 
   static ThemeData _buildLightPink() => _build(
-        base: ThemeData.light(useMaterial3: true),
-        colorScheme: const ColorScheme.light(
-          primary: AppColors.bitcoinOrange,
-          onPrimary: Colors.white,
-          surface: AppColors.surfaceLightPink,
-          surfaceContainerLow: AppColors.backgroundLightPink,
-          surfaceContainer: AppColors.mutedSurfaceLightPink,
-          surfaceContainerHigh: Colors.white,
-          onSurface: AppColors.textPrimary,
-          onSurfaceVariant: AppColors.textMuted,
-          outlineVariant: AppColors.divider,
-          error: AppColors.danger,
-          onError: Colors.white,
-        ),
-        palette: const AppPalette.lightPink(),
-        statusBarIconBrightness: Brightness.dark,
-        dialogBackgroundColor: AppColors.backgroundLightPink,
-      );
+    base: ThemeData.light(useMaterial3: true),
+    colorScheme: const ColorScheme.light(
+      primary: AppColors.bitcoinOrange,
+      onPrimary: Colors.white,
+      surface: AppColors.surfaceLightPink,
+      surfaceContainerLow: AppColors.backgroundLightPink,
+      surfaceContainer: AppColors.mutedSurfaceLightPink,
+      surfaceContainerHigh: Colors.white,
+      onSurface: AppColors.textPrimary,
+      onSurfaceVariant: AppColors.textMuted,
+      outlineVariant: AppColors.divider,
+      error: AppColors.danger,
+      onError: Colors.white,
+    ),
+    palette: const AppPalette.lightPink(),
+    statusBarIconBrightness: Brightness.dark,
+    dialogBackgroundColor: AppColors.backgroundLightPink,
+  );
 
   static ThemeData _buildDark() => _build(
-        base: ThemeData.dark(useMaterial3: true),
-        colorScheme: const ColorScheme.dark(
-          primary: AppColors.bitcoinOrangeDark,
-          onPrimary: Colors.white,
-          surface: AppColors.surfaceDark,
-          surfaceContainerLow: AppColors.backgroundDark,
-          surfaceContainer: AppColors.mutedSurfaceDark,
-          surfaceContainerHigh: AppColors.elevatedSurfaceDark,
-          onSurface: AppColors.textPrimaryDark,
-          onSurfaceVariant: AppColors.textMutedDark,
-          outlineVariant: AppColors.dividerDark,
-          error: AppColors.dangerDark,
-          onError: Colors.white,
-        ),
-        palette: const AppPalette.dark(),
-        statusBarIconBrightness: Brightness.light,
-      );
+    base: ThemeData.dark(useMaterial3: true),
+    colorScheme: const ColorScheme.dark(
+      primary: AppColors.bitcoinOrangeDark,
+      onPrimary: Colors.white,
+      surface: AppColors.surfaceDark,
+      surfaceContainerLow: AppColors.backgroundDark,
+      surfaceContainer: AppColors.mutedSurfaceDark,
+      surfaceContainerHigh: AppColors.elevatedSurfaceDark,
+      onSurface: AppColors.textPrimaryDark,
+      onSurfaceVariant: AppColors.textMutedDark,
+      outlineVariant: AppColors.dividerDark,
+      error: AppColors.dangerDark,
+      onError: Colors.white,
+    ),
+    palette: const AppPalette.dark(),
+    statusBarIconBrightness: Brightness.light,
+  );
 
   static ThemeData _buildDarkBlue() => _build(
-        base: ThemeData.dark(useMaterial3: true),
-        colorScheme: const ColorScheme.dark(
-          primary: AppColors.bitcoinOrangeDark,
-          onPrimary: Colors.white,
-          surface: AppColors.surfaceDarkBlue,
-          surfaceContainerLow: AppColors.backgroundDarkBlue,
-          surfaceContainer: AppColors.mutedSurfaceDarkBlue,
-          surfaceContainerHigh: AppColors.elevatedSurfaceDarkBlue,
-          onSurface: AppColors.textPrimaryDark,
-          onSurfaceVariant: AppColors.textMutedDark,
-          outlineVariant: AppColors.dividerDark,
-          error: AppColors.dangerDark,
-          onError: Colors.white,
-        ),
-        palette: const AppPalette.darkBlue(),
-        statusBarIconBrightness: Brightness.light,
-      );
+    base: ThemeData.dark(useMaterial3: true),
+    colorScheme: const ColorScheme.dark(
+      primary: AppColors.bitcoinOrangeDark,
+      onPrimary: Colors.white,
+      surface: AppColors.surfaceDarkBlue,
+      surfaceContainerLow: AppColors.backgroundDarkBlue,
+      surfaceContainer: AppColors.mutedSurfaceDarkBlue,
+      surfaceContainerHigh: AppColors.elevatedSurfaceDarkBlue,
+      onSurface: AppColors.textPrimaryDark,
+      onSurfaceVariant: AppColors.textMutedDark,
+      outlineVariant: AppColors.dividerDark,
+      error: AppColors.dangerDark,
+      onError: Colors.white,
+    ),
+    palette: const AppPalette.darkBlue(),
+    statusBarIconBrightness: Brightness.light,
+  );
 
   static ThemeData _build({
     required ThemeData base,
@@ -161,7 +161,9 @@ class AppThemes {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: AppTypography.title.copyWith(color: colorScheme.onSurface),
+        titleTextStyle: AppTypography.title.copyWith(
+          color: colorScheme.onSurface,
+        ),
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: statusBarIconBrightness,
@@ -197,8 +199,14 @@ class AppThemes {
           horizontal: AppSpacing.md,
           vertical: AppSpacing.sm,
         ),
-        border: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide.none,
+        ),
         focusedBorder: OutlineInputBorder(
           borderRadius: radius,
           borderSide: BorderSide(color: palette.bitcoinOrange, width: 1),
@@ -219,7 +227,11 @@ class _NoScrollbarBehavior extends MaterialScrollBehavior {
   const _NoScrollbarBehavior();
 
   @override
-  Widget buildScrollbar(BuildContext context, Widget child, ScrollableDetails details) => child;
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) => child;
 }
 
 const ScrollBehavior noScrollbarsBehavior = _NoScrollbarBehavior();

@@ -18,7 +18,7 @@ WebSocketChannel _defaultFactory(Uri uri) => WebSocketChannel.connect(uri);
 
 class KrakenStreamService {
   KrakenStreamService({KrakenChannelFactory? channelFactory})
-      : _factory = channelFactory ?? _defaultFactory;
+    : _factory = channelFactory ?? _defaultFactory;
 
   static const String url = 'wss://ws.kraken.com/v2';
   // Kraken WS v2 quotes BTC against the major fiats with the `BTC/` prefix; v1
@@ -111,10 +111,7 @@ class KrakenStreamService {
 
     final subscribe = jsonEncode({
       'method': 'subscribe',
-      'params': {
-        'channel': 'ticker',
-        'symbol': pairs,
-      },
+      'params': {'channel': 'ticker', 'symbol': pairs},
     });
     try {
       channel.sink.add(subscribe);

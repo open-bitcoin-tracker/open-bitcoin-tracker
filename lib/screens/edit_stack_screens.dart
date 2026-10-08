@@ -31,16 +31,16 @@ class _EditStackAmountScreenState extends State<EditStackAmountScreen> {
   void initState() {
     super.initState();
     _original = context.read<AppStateNotifier>().stacks.firstWhere(
-          (s) => s.id == widget.stackId,
-          orElse: () => throw StateError('Stack ${widget.stackId} not found'),
-        );
+      (s) => s.id == widget.stackId,
+      orElse: () => throw StateError('Stack ${widget.stackId} not found'),
+    );
     final mode = context.read<AppStateNotifier>().btcDisplayMode;
     _modeAtInit = mode;
     _input = _original.sats == 0
         ? ''
         : (mode == BtcDisplayMode.btc
-            ? model.Sats.satsToBtcRaw(_original.sats)
-            : _original.sats.toString());
+              ? model.Sats.satsToBtcRaw(_original.sats)
+              : _original.sats.toString());
     _caret = _input.length;
     // If the stacks re-lock while the user is on this screen (e.g. they
     // backgrounded the app and the timeout fired on resume), the underlying
@@ -142,9 +142,9 @@ class _EditStackAmountScreenState extends State<EditStackAmountScreen> {
   void _onConfirm(BtcDisplayMode mode) {
     final sats = _enteredSats(mode);
     context.read<AppStateNotifier>().updateStack(
-          widget.stackId,
-          (s) => s.copyWith(sats: sats),
-        );
+      widget.stackId,
+      (s) => s.copyWith(sats: sats),
+    );
     Navigator.of(context).pop();
   }
 
@@ -215,9 +215,9 @@ class _EditStackNameScreenState extends State<EditStackNameScreen>
     // Pre-populate the field with the existing stack name before the mixin
     // runs its own initState (which creates the controller).
     final existing = context.read<AppStateNotifier>().stacks.firstWhere(
-          (s) => s.id == widget.stackId,
-          orElse: () => throw StateError('Stack ${widget.stackId} not found'),
-        );
+      (s) => s.id == widget.stackId,
+      orElse: () => throw StateError('Stack ${widget.stackId} not found'),
+    );
     initialText = existing.name;
     super.initState();
     // Bail to home if the stacks re-lock while mid-edit (resume timeout fires,
@@ -243,9 +243,9 @@ class _EditStackNameScreenState extends State<EditStackNameScreen>
         ? AppLocalizations.of(context).stackUnnamedFallback
         : trimmed;
     context.read<AppStateNotifier>().updateStack(
-          widget.stackId,
-          (s) => s.copyWith(name: name),
-        );
+      widget.stackId,
+      (s) => s.copyWith(name: name),
+    );
     Navigator.of(context).pop();
   }
 

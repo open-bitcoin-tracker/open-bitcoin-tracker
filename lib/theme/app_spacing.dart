@@ -17,8 +17,10 @@ class AppSpacing {
   // Inset shared by the tappable menu/dialog rows (auth-mode picker, lock
   // timeout list, the portfolio toggle). The 14px vertical sits intentionally
   // between [sm] and [md] to give these rows a comfortable touch height.
-  static const EdgeInsets menuRowPadding =
-      EdgeInsets.symmetric(horizontal: sm, vertical: 14);
+  static const EdgeInsets menuRowPadding = EdgeInsets.symmetric(
+    horizontal: sm,
+    vertical: 14,
+  );
 
   // Shared expand/collapse animation cadence used by expandable cards,
   // the header section reveal, and the price ticker crossfade.

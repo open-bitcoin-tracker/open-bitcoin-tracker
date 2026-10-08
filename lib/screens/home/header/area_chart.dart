@@ -1,10 +1,9 @@
-import 'dart:math' as math;
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../api/api.dart';
+import 'chart_spot_cache.dart';
 
 class AreaChart extends StatefulWidget {
   const AreaChart({
@@ -34,8 +33,8 @@ class AreaChart extends StatefulWidget {
   State<AreaChart> createState() => _AreaChartState();
 }
 
-class _AreaChartState extends State<AreaChart>
-    with TickerProviderStateMixin {
+class _AreaChartState extends State<AreaChart> with TickerProviderStateMixin {
+  final ChartSpotCache _spotCache = ChartSpotCache();
   List<PricePoint>? _spotsForData;
   late List<FlSpot> _spots;
   List<FlSpot>? _linearSpots;
@@ -58,18 +57,19 @@ class _AreaChartState extends State<AreaChart>
   // Animated window endpoints. When the parent changes windowStartMs/End,
   // we tween from the last-shown values to the new targets so the chart
   // feels like a camera zoom instead of a data morph.
-  late final AnimationController _zoom = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 450),
-  )..addStatusListener((status) {
-      // Once the zoom-in window has finished narrowing onto the new range,
-      // drop the held outgoing curve so the new (shorter) curve takes over.
-      // No setState needed: the controller already drives a rebuild via the
-      // AnimatedBuilder on the completing frame, and this fires within it.
-      if (status == AnimationStatus.completed && _prevSpots != null) {
-        _prevSpots = null;
-      }
-    });
+  late final AnimationController _zoom =
+      AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 450),
+      )..addStatusListener((status) {
+        // Once the zoom-in window has finished narrowing onto the new range,
+        // drop the held outgoing curve so the new (shorter) curve takes over.
+        // No setState needed: the controller already drives a rebuild via the
+        // AnimatedBuilder on the completing frame, and this fires within it.
+        if (status == AnimationStatus.completed && _prevSpots != null) {
+          _prevSpots = null;
+        }
+      });
   double? _animFromStartX;
   double? _animFromEndX;
   double? _animFromMinY;
@@ -102,30 +102,31 @@ class _AreaChartState extends State<AreaChart>
   void initState() {
     super.initState();
     _scaleDisplayLogScale = widget.logScale;
-    _scaleFadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-      value: 1.0,
-    )..addStatusListener((status) {
-        if (status == AnimationStatus.dismissed) {
-          if (!mounted) return;
-          if (_activeLogScale != widget.logScale) {
-            setState(() {
-              _scaleDisplayLogScale = widget.logScale;
-              _animFromStartX = null;
-              _animFromEndX = null;
-              _animFromMinY = null;
-              _animFromMaxY = null;
-              _prevSpots = null;
+    _scaleFadeController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 150),
+          value: 1.0,
+        )..addStatusListener((status) {
+          if (status == AnimationStatus.dismissed) {
+            if (!mounted) return;
+            if (_activeLogScale != widget.logScale) {
+              setState(() {
+                _scaleDisplayLogScale = widget.logScale;
+                _animFromStartX = null;
+                _animFromEndX = null;
+                _animFromMinY = null;
+                _animFromMaxY = null;
+                _prevSpots = null;
+              });
+            }
+            Future.microtask(() {
+              if (mounted) {
+                _scaleFadeController.forward();
+              }
             });
           }
-          Future.microtask(() {
-            if (mounted) {
-              _scaleFadeController.forward();
-            }
-          });
-        }
-      });
+        });
   }
 
   @override
@@ -138,17 +139,9 @@ class _AreaChartState extends State<AreaChart>
 
   void _rebuildCache() {
     final data = widget.data;
-    _linearSpots = [
-      for (final p in data)
-        FlSpot(p.t.toDouble(), p.price),
-    ];
-    _logSpots = [
-      for (final p in data)
-        FlSpot(
-          p.t.toDouble(),
-          p.price > 0 ? math.log(p.price) / math.ln10 : p.price,
-        ),
-    ];
+    final (linear, logarithmic) = _spotCache.compute(data);
+    _linearSpots = linear;
+    _logSpots = logarithmic;
     _spotsForData = data;
     _spots = _activeLogScale ? _logSpots! : _linearSpots!;
   }
@@ -183,7 +176,8 @@ class _AreaChartState extends State<AreaChart>
     }
     final width = context.size?.width ?? 0;
     if (width <= 0 || _spots.isEmpty) return;
-    final x = _targetStartX +
+    final x =
+        _targetStartX +
         (localPosition.dx / width) * (_targetEndX - _targetStartX);
     // Binary search for the first spot at or right of x; spots are sorted.
     var lo = 0;
@@ -262,7 +256,9 @@ class _AreaChartState extends State<AreaChart>
 
   @override
   Widget build(BuildContext context) {
-    if (!identical(_spotsForData, widget.data) || _linearSpots == null || _logSpots == null) {
+    if (!identical(_spotsForData, widget.data) ||
+        _linearSpots == null ||
+        _logSpots == null) {
       _rebuildCache();
     }
     final cs = Theme.of(context).colorScheme;
@@ -272,8 +268,11 @@ class _AreaChartState extends State<AreaChart>
 
     final newTargetStart = widget.windowStartMs.toDouble();
     final newTargetEnd = widget.windowEndMs.toDouble();
-    final (newTargetMinY, newTargetMaxY) =
-        _windowYFit(targetSpots, newTargetStart, newTargetEnd);
+    final (newTargetMinY, newTargetMaxY) = _windowYFit(
+      targetSpots,
+      newTargetStart,
+      newTargetEnd,
+    );
     _targetStartX = newTargetStart;
     _targetEndX = newTargetEnd;
     _targetMinY = newTargetMinY;
@@ -310,22 +309,18 @@ class _AreaChartState extends State<AreaChart>
         gestures: <Type, GestureRecognizerFactory>{
           VerticalDragGestureRecognizer:
               GestureRecognizerFactoryWithHandlers<
-                  VerticalDragGestureRecognizer>(
-            () => VerticalDragGestureRecognizer(),
-            (instance) {
-              // No callbacks: just an arena spoiler against ancestor vertical
-              // scrolls that would otherwise grab pointers over the chart.
-            },
-          ),
+                VerticalDragGestureRecognizer
+              >(() => VerticalDragGestureRecognizer(), (instance) {
+                // No callbacks: just an arena spoiler against ancestor vertical
+                // scrolls that would otherwise grab pointers over the chart.
+              }),
           HorizontalDragGestureRecognizer:
               GestureRecognizerFactoryWithHandlers<
-                  HorizontalDragGestureRecognizer>(
-            () => HorizontalDragGestureRecognizer(),
-            (instance) {
-              // No callbacks: arena spoiler against any ancestor horizontal
-              // scroll.
-            },
-          ),
+                HorizontalDragGestureRecognizer
+              >(() => HorizontalDragGestureRecognizer(), (instance) {
+                // No callbacks: arena spoiler against any ancestor horizontal
+                // scroll.
+              }),
         },
         child: AnimatedBuilder(
           animation: Listenable.merge([_zoom, _scaleFadeController]),
@@ -344,8 +339,8 @@ class _AreaChartState extends State<AreaChart>
             // (_handleTouch bails while animating), so indexing stays consistent.
             final spots =
                 _prevSpots != null && _zoom.status != AnimationStatus.completed
-                    ? _prevSpots!
-                    : _spots;
+                ? _prevSpots!
+                : _spots;
             // Value-space coordinates of the dot fl_chart is painting for the
             // touched point, used to position the ripple overlay. Null when not
             // scrubbing or the index is out of range for the current curve.
@@ -363,10 +358,18 @@ class _AreaChartState extends State<AreaChart>
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),
                 titlesData: const FlTitlesData(
-                  leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                 ),
                 lineTouchData: LineTouchData(
                   // Touch handling is done by the Listener above; fl_chart only
@@ -474,7 +477,6 @@ class _AreaChartState extends State<AreaChart>
       ),
     );
   }
-
 }
 
 // Concentric orange rings expanding out of the selected point on the chart.

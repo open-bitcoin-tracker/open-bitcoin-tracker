@@ -10,9 +10,5 @@ import 'package:cryptography/cryptography.dart';
 ///   - memory:      19456 KiB
 ///   - iterations:  2
 ///   - hashLength:  32 bytes
-Argon2id buildStacksArgon2id() => Argon2id(
-      parallelism: 1,
-      memory: 19456,
-      iterations: 2,
-      hashLength: 32,
-    );
+Argon2id buildStacksArgon2id() =>
+    Argon2id(parallelism: 1, memory: 19456, iterations: 2, hashLength: 32);

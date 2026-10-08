@@ -111,7 +111,8 @@ class _HomeHeaderSectionState extends State<HomeHeaderSection> {
     final usdRate = context.select<LivePriceController, double?>(
       (c) => c.rates.usd,
     );
-    final usdToCurrency = (usdRate != null && usdRate > 0 && currentPrice != null)
+    final usdToCurrency =
+        (usdRate != null && usdRate > 0 && currentPrice != null)
         ? currentPrice / usdRate
         : 1.0;
 
@@ -208,14 +209,16 @@ class _HomeHeaderSectionState extends State<HomeHeaderSection> {
     }
 
     final priceSwipeHintDismissed = context.select<AppStateNotifier, bool>(
-        (a) => a.priceSwipeHintDismissed);
+      (a) => a.priceSwipeHintDismissed,
+    );
     // "Reset all options" flips priceSwipeHintDismissed back to false — when
     // that happens, also clear the session latch so the hint re-appears.
     if (_prevPriceSwipeHintDismissed && !priceSwipeHintDismissed) {
       _swipedThisSession = false;
     }
     _prevPriceSwipeHintDismissed = priceSwipeHintDismissed;
-    final showSwipeHint = !_swipedThisSession &&
+    final showSwipeHint =
+        !_swipedThisSession &&
         !priceSwipeHintDismissed &&
         widget.selectedCurrencies.length >= 2;
     final currencyEverSwiped = _swipedThisSession || priceSwipeHintDismissed;
@@ -312,15 +315,16 @@ class _HomeHeaderSectionState extends State<HomeHeaderSection> {
                               Navigator.of(ctx).pop();
                               final picked = await Navigator.of(context)
                                   .push<List<Currency>>(
-                                MaterialPageRoute(
-                                  builder: (_) => CurrencyPickerScreen(
-                                    initial: app.selectedCurrencies,
-                                  ),
-                                ),
-                              );
+                                    MaterialPageRoute(
+                                      builder: (_) => CurrencyPickerScreen(
+                                        initial: app.selectedCurrencies,
+                                      ),
+                                    ),
+                                  );
                               if (picked != null) {
                                 app.setSelectedCurrencies(picked);
-                                if (picked.length == 1 && _swipedThisSession == false) {
+                                if (picked.length == 1 &&
+                                    _swipedThisSession == false) {
                                   setState(() => _swipedThisSession = true);
                                   app.dismissPriceSwipeHint();
                                 }
@@ -331,11 +335,14 @@ class _HomeHeaderSectionState extends State<HomeHeaderSection> {
                           SettingsPickerTile(
                             label: l10n.settingsLivePriceCadence,
                             value: _livePriceCadenceLabel(
-                                l10n, app.livePriceCadence),
+                              l10n,
+                              app.livePriceCadence,
+                            ),
                             onTap: () async {
-                              final picked =
-                                  await _showLivePriceCadencePicker(
-                                      ctx, app.livePriceCadence);
+                              final picked = await _showLivePriceCadencePicker(
+                                ctx,
+                                app.livePriceCadence,
+                              );
                               if (picked != null) {
                                 app.setLivePriceCadence(picked);
                               }

@@ -36,18 +36,18 @@ class _BiometricStorageVault implements BiometricVault {
   static const _slotName = 'stacks_dek_wrapped_bio';
 
   Future<BiometricStorageFile> _slot() => BiometricStorage().getStorage(
-        _slotName,
-        options: StorageFileInitOptions(
-          authenticationRequired: true,
-          androidBiometricOnly: true,
-        ),
-        promptInfo: const PromptInfo(
-          androidPromptInfo: AndroidPromptInfo(
-            title: 'Unlock stacks',
-            negativeButton: 'Cancel',
-          ),
-        ),
-      );
+    _slotName,
+    options: StorageFileInitOptions(
+      authenticationRequired: true,
+      androidBiometricOnly: true,
+    ),
+    promptInfo: const PromptInfo(
+      androidPromptInfo: AndroidPromptInfo(
+        title: 'Unlock stacks',
+        negativeButton: 'Cancel',
+      ),
+    ),
+  );
 
   @override
   Future<String?> read() async {
@@ -91,15 +91,14 @@ Future<String> _deriveAndWrap(_DeriveAndWrapArgs args) async {
     nonce: args.salt,
   );
   final kekBytes = await derived.extractBytes();
-  final box = await aes.encrypt(
-    args.plaintext,
-    secretKey: SecretKey(kekBytes),
+  final box = await aes.encrypt(args.plaintext, secretKey: SecretKey(kekBytes));
+  return _encodeEnvelopeStatic(
+    _EnvelopeData(
+      nonce: box.nonce,
+      ciphertext: box.cipherText,
+      mac: box.mac.bytes,
+    ),
   );
-  return _encodeEnvelopeStatic(_EnvelopeData(
-    nonce: box.nonce,
-    ciphertext: box.cipherText,
-    mac: box.mac.bytes,
-  ));
 }
 
 /// Argon2id KEK derivation + AES-GCM unwrap in one isolate hop.
@@ -126,15 +125,14 @@ Future<List<int>?> _deriveAndUnwrap(_DeriveAndUnwrapArgs args) async {
 /// Returns the encoded envelope string.
 Future<String> _aesEncrypt(_AesArgs args) async {
   final aes = AesGcm.with256bits();
-  final box = await aes.encrypt(
-    args.plaintext,
-    secretKey: SecretKey(args.key),
+  final box = await aes.encrypt(args.plaintext, secretKey: SecretKey(args.key));
+  return _encodeEnvelopeStatic(
+    _EnvelopeData(
+      nonce: box.nonce,
+      ciphertext: box.cipherText,
+      mac: box.mac.bytes,
+    ),
   );
-  return _encodeEnvelopeStatic(_EnvelopeData(
-    nonce: box.nonce,
-    ciphertext: box.cipherText,
-    mac: box.mac.bytes,
-  ));
 }
 
 /// AES-GCM decrypt in one isolate hop (no KDF — key already in memory).
@@ -183,10 +181,7 @@ class _DeriveAndUnwrapArgs {
 }
 
 class _AesArgs {
-  const _AesArgs({
-    required this.plaintext,
-    required this.key,
-  });
+  const _AesArgs({required this.plaintext, required this.key});
   final List<int> plaintext;
   final List<int> key;
 }
@@ -210,19 +205,26 @@ class _AesDecryptArgs {
 // ---------------------------------------------------------------------------
 
 class _EnvelopeData {
-  _EnvelopeData({required this.nonce, required this.ciphertext, required this.mac});
+  _EnvelopeData({
+    required this.nonce,
+    required this.ciphertext,
+    required this.mac,
+  });
   final List<int> nonce;
   final List<int> ciphertext;
   final List<int> mac;
 }
 
-String _encodeEnvelopeStatic(_EnvelopeData e) =>
-    base64.encode(utf8.encode(jsonEncode({
+String _encodeEnvelopeStatic(_EnvelopeData e) => base64.encode(
+  utf8.encode(
+    jsonEncode({
       'v': 1,
       'n': base64.encode(e.nonce),
       'c': base64.encode(e.ciphertext),
       'm': base64.encode(e.mac),
-    })));
+    }),
+  ),
+);
 
 _EnvelopeData? _decodeEnvelopeStatic(String s) {
   try {
@@ -247,12 +249,12 @@ class StacksCryptoService {
   StacksCryptoService({
     FlutterSecureStorage? storage,
     BiometricVault? biometricVault,
-  })  : _storage = storage ??
-            const FlutterSecureStorage(
-              aOptions:
-                  AndroidOptions(encryptedSharedPreferences: true),
-            ),
-        _bio = biometricVault ?? _BiometricStorageVault();
+  }) : _storage =
+           storage ??
+           const FlutterSecureStorage(
+             aOptions: AndroidOptions(encryptedSharedPreferences: true),
+           ),
+       _bio = biometricVault ?? _BiometricStorageVault();
 
   static const _kKdfSalt = 'stacks_crypto_kdf_salt';
   static const _kDekWrappedPin = 'stacks_crypto_dek_wrapped_pin';

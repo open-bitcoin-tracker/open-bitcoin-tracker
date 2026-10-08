@@ -2,43 +2,10 @@ import 'package:flutter/foundation.dart';
 
 import '../data/app_enums.dart';
 import '../data/sats.dart';
-
-/// Which two units the converter is currently bridging.
-/// - [fiat]: fiat ↔ Bitcoin (uses live BTC rate)
-/// - [sats]: BTC ↔ sats (pure unit conversion, no rate)
-enum ConverterMode { fiat, sats }
-
-/// The two cards on the converter screen, by visual position. The previous
-/// `ConverterSide.fiat`/`sats` naming had different meanings in each mode
-/// (the "fiat" slot held sats in sats mode); `top`/`bottom` is mode-neutral.
-enum ConverterSlot { top, bottom }
-
-/// Per-mode state: what the user is typing, where the caret sits, and which
-/// slot they're typing into. The non-active slot is always derived at render
-/// time; it never lives in state.
-@immutable
-class ConverterEntry {
-  const ConverterEntry({
-    this.raw = '',
-    this.caret = 0,
-    this.active = ConverterSlot.top,
-  });
-
-  /// The raw string the user has typed, in the active slot's display unit.
-  /// Locale-neutral: '.' decimal separator, no grouping. Empty == no input.
-  final String raw;
-  // Caret position in [raw], in [0, raw.length].
-  final int caret;
-  // Which slot the user is editing.
-  final ConverterSlot active;
-
-  ConverterEntry copyWith({String? raw, int? caret, ConverterSlot? active}) =>
-      ConverterEntry(
-        raw: raw ?? this.raw,
-        caret: caret ?? this.caret,
-        active: active ?? this.active,
-      );
-}
+import '../data/converter_entry.dart';
+import 'app_state_notifier.dart';
+import 'converter_logic.dart' show entryFrom, parseMode;
+export '../data/converter_entry.dart';
 
 /// Single source of truth for the converter screen.
 ///
@@ -53,13 +20,47 @@ class ConverterEntry {
 /// unit interpretation of [raw] is always coherent with the *current* state,
 /// without any post-frame re-sync machinery or "last-seen mode" bookkeeping.
 class ConverterState extends ChangeNotifier {
+  ConverterState({AppStateNotifier? app}) : _app = app {
+    if (app == null) return;
+    hydrateOnce(
+      fiat: entryFrom(
+        app.converterFiatModeRaw,
+        app.converterFiatModeActiveSlot,
+      ),
+      sats: entryFrom(
+        app.converterSatsModeRaw,
+        app.converterSatsModeActiveSlot,
+      ),
+      mode: parseMode(app.converterMode) ?? ConverterMode.fiat,
+    );
+    onPersist = (mode, entry) {
+      final write = mode == ConverterMode.fiat
+          ? app.setConverterFiatModeEntry
+          : app.setConverterSatsModeEntry;
+      write(raw: entry.raw, activeSlot: entry.active.name);
+    };
+    onPersistMode = (mode) => app.setConverterMode(mode.name);
+  }
+
+  final AppStateNotifier? _app;
+
+  /// Called on first screen entry, preserving the lazy first-visit defaults.
+  void seedPreferences() {
+    final app = _app;
+    if (app == null) return;
+    if (app.converterCurrency == null) app.setConverterCurrency(app.currency);
+    if (app.converterBtcMode == null) {
+      app.setConverterBtcMode(app.btcDisplayMode);
+    }
+  }
+
   ConverterMode mode = ConverterMode.fiat;
   ConverterEntry _fiat = const ConverterEntry();
   ConverterEntry _sats = const ConverterEntry();
   bool showLeadingZeroWarning = false;
-  // Optional persistence hooks installed by the screen. [onPersist] fires
+  // Persistence hooks owned by this controller and injected at construction. [onPersist] fires
   // on every entry mutation (per-mode keystrokes, slot flips); [onPersistMode]
-  // fires whenever the user toggles the converter mode. The screen routes
+  // fires whenever the user toggles the converter mode. The controller routes
   // both into AppStateNotifier so values + mode survive app restarts.
   void Function(ConverterMode mode, ConverterEntry entry)? onPersist;
   void Function(ConverterMode mode)? onPersistMode;
@@ -72,8 +73,7 @@ class ConverterState extends ChangeNotifier {
 
   bool _hydrated = false;
 
-  /// First call wins; subsequent calls are no-ops so it's safe to call from
-  /// the screen's build method. Bypasses [onPersist]/[onPersistMode] — the
+  /// Hydrates once at construction; later calls leave in-progress input intact. Bypasses [onPersist]/[onPersistMode] — the
   /// caller is the source of truth.
   void hydrateOnce({
     required ConverterEntry fiat,
@@ -104,12 +104,15 @@ class ConverterState extends ChangeNotifier {
     final nextCaret = raw != null
         ? (caret ?? nextRaw.length)
         : (caret != null ? caret.clamp(0, nextRaw.length) : cur.caret);
-    final entryChanged = nextRaw != cur.raw ||
+    final entryChanged =
+        nextRaw != cur.raw ||
         nextActive != cur.active ||
         nextCaret != cur.caret;
     final warningChanged = warning != null && warning != showLeadingZeroWarning;
     if (entryChanged) {
-      _write(ConverterEntry(raw: nextRaw, caret: nextCaret, active: nextActive));
+      _write(
+        ConverterEntry(raw: nextRaw, caret: nextCaret, active: nextActive),
+      );
     }
     if (warningChanged) showLeadingZeroWarning = warning;
     if (entryChanged || warningChanged) notifyListeners();

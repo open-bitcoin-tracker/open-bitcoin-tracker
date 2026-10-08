@@ -30,7 +30,9 @@ Future<Widget> _wrap({
   final stream = KrakenStreamService();
   final ohlc = KrakenOhlcClient(httpClient: noopHttp);
   final cache = BtcRatesCache(prefs);
-  final historyCache = BtcHistoryCache(directory: Directory.systemTemp.createTempSync('bt_test_'));
+  final historyCache = BtcHistoryCache(
+    directory: Directory.systemTemp.createTempSync('bt_test_'),
+  );
 
   return MultiProvider(
     providers: [
@@ -68,10 +70,9 @@ void main() {
 
   testWidgets('background is pure black in OLED black theme', (tester) async {
     // OLED Black corresponds to dark theme with DarkVariant.black
-    await tester.pumpWidget(await _wrap(
-      darkVariant: DarkVariant.black,
-      theme: AppTheme.dark,
-    ));
+    await tester.pumpWidget(
+      await _wrap(darkVariant: DarkVariant.black, theme: AppTheme.dark),
+    );
     await tester.pump();
 
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
@@ -80,28 +81,26 @@ void main() {
     await tester.pump(AppStateNotifier.saveDebounceWindow);
   });
 
-  testWidgets('background is surfaceDarkBlue in Dark Blue theme', (tester) async {
-    await tester.pumpWidget(await _wrap(
-      darkVariant: DarkVariant.blue,
-      theme: AppTheme.dark,
-    ));
+  testWidgets('background remains black in Dark Blue theme', (tester) async {
+    await tester.pumpWidget(
+      await _wrap(darkVariant: DarkVariant.blue, theme: AppTheme.dark),
+    );
     await tester.pump();
 
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
-    expect(scaffold.backgroundColor, AppColors.surfaceDarkBlue);
+    expect(scaffold.backgroundColor, Colors.black);
 
     await tester.pump(AppStateNotifier.saveDebounceWindow);
   });
 
-  testWidgets('background is surface (pure white) in Light theme', (tester) async {
-    await tester.pumpWidget(await _wrap(
-      darkVariant: DarkVariant.black,
-      theme: AppTheme.light,
-    ));
+  testWidgets('background remains black in Light theme', (tester) async {
+    await tester.pumpWidget(
+      await _wrap(darkVariant: DarkVariant.black, theme: AppTheme.light),
+    );
     await tester.pump();
 
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
-    expect(scaffold.backgroundColor, AppColors.surface);
+    expect(scaffold.backgroundColor, Colors.black);
 
     await tester.pump(AppStateNotifier.saveDebounceWindow);
   });

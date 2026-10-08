@@ -19,10 +19,6 @@ class StackNameConfirmButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OrangePrimaryButton(
-      isValid: isValid,
-      onTap: onTap,
-      label: label,
-    );
+    return OrangePrimaryButton(isValid: isValid, onTap: onTap, label: label);
   }
 }

@@ -153,8 +153,9 @@ class SatsInputScaffold extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                 child: Opacity(
-                  opacity:
-                      (warning != null || showLeadingZeroWarning) ? 1.0 : 0.0,
+                  opacity: (warning != null || showLeadingZeroWarning)
+                      ? 1.0
+                      : 0.0,
                   child: Text(
                     warning ?? l10n.satsInputLeadingZeroWarning,
                     textAlign: TextAlign.center,

@@ -31,8 +31,11 @@ class SatsFiatLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currency = context.select<AppStateNotifier, Currency>((a) => a.currency);
-    final rate = context.select<LivePriceController, double?>(
+    final currency = context.select<AppStateNotifier, Currency>(
+      (a) => a.currency,
+    );
+    final rate =
+        context.select<LivePriceController, double?>(
           (c) => c.rates.forCurrency(currency),
         ) ??
         0;
@@ -44,14 +47,12 @@ class SatsFiatLabel extends StatelessWidget {
     final showHint = input.isEmpty && showUnitHint;
     final l10n = AppLocalizations.of(context);
     final label = input.isEmpty
-        ? (showHint && mode != BtcDisplayMode.btc
-            ? l10n.satsInputUnitHint
-            : '')
+        ? (showHint && mode != BtcDisplayMode.btc ? l10n.satsInputUnitHint : '')
         : rate == 0
-            ? ''
-            : symbolAfterAmount
-                ? '${formatDerivedFiatValue(fiatValue)}$symbol'
-                : '$symbol${formatDerivedFiatValue(fiatValue)}';
+        ? ''
+        : symbolAfterAmount
+        ? '${formatDerivedFiatValue(fiatValue)}$symbol'
+        : '$symbol${formatDerivedFiatValue(fiatValue)}';
 
     final cs = Theme.of(context).colorScheme;
     return SizedBox(

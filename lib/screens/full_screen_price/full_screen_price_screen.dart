@@ -8,7 +8,8 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../data/app_enums.dart';
 import '../../data/fiat.dart';
-import '../../main.dart' show kDefaultOrientations, kLandscapeOrientations;
+import '../../services/app_orientation.dart'
+    show kDefaultOrientations, kLandscapeOrientations;
 import '../../services/app_haptics.dart';
 import '../../state/state.dart';
 import '../../theme/theme.dart';

@@ -14,7 +14,8 @@ import 'settings/settings_widgets.dart';
 
 const String _kWebsiteUrl = 'https://openbitcointracker.com';
 const String _kPrivacyPolicyUrl = 'https://openbitcointracker.com/privacy/';
-const String _kSourceCodeUrl = 'https://github.com/Max-Hodler/open-bitcoin-tracker';
+const String _kSourceCodeUrl =
+    'https://github.com/Max-Hodler/open-bitcoin-tracker';
 const String _kKrakenUrl = 'https://www.kraken.com';
 const String _kCoinMetricsUrl = 'https://coinmetrics.io';
 const String _kEcbUrl =
@@ -73,13 +74,17 @@ class _AboutScreenState extends State<AboutScreen> {
                 Text(
                   l10n.dialogResetTitle,
                   textAlign: TextAlign.center,
-                  style: AppTypography.title.copyWith(fontWeight: FontWeight.w500),
+                  style: AppTypography.title.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   body,
                   textAlign: TextAlign.center,
-                  style: AppTypography.body.copyWith(color: cs.onSurfaceVariant),
+                  style: AppTypography.body.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 SizedBox(
@@ -92,7 +97,9 @@ class _AboutScreenState extends State<AboutScreen> {
                     style: FilledButton.styleFrom(
                       backgroundColor: cs.outlineVariant,
                       foregroundColor: cs.onSurface,
-                      textStyle: AppTypography.title.copyWith(fontWeight: FontWeight.w500),
+                      textStyle: AppTypography.title.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppSpacing.radius),
                       ),
@@ -111,7 +118,9 @@ class _AboutScreenState extends State<AboutScreen> {
                     style: FilledButton.styleFrom(
                       backgroundColor: cs.outlineVariant,
                       foregroundColor: cs.onSurface,
-                      textStyle: AppTypography.title.copyWith(fontWeight: FontWeight.w500),
+                      textStyle: AppTypography.title.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppSpacing.radius),
                       ),
@@ -161,12 +170,7 @@ class _AboutScreenState extends State<AboutScreen> {
       ),
       body: ScrollHairline(
         child: ListView(
-          padding: EdgeInsets.fromLTRB(
-            hPad,
-            0,
-            hPad,
-            AppSpacing.xl,
-          ),
+          padding: EdgeInsets.fromLTRB(hPad, 0, hPad, AppSpacing.xl),
           children: [
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -278,9 +282,7 @@ class _AboutScreenState extends State<AboutScreen> {
               ),
             ],
             const SizedBox(height: AppSpacing.xl),
-            _Footer(
-              version: l10n.aboutVersion(_appVersion),
-            ),
+            _Footer(version: l10n.aboutVersion(_appVersion)),
           ],
         ),
       ),
@@ -305,7 +307,10 @@ Widget _externalLinkTile(
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.label, this.bottomSpacing = AppSpacing.sm});
+  const _SectionHeader({
+    required this.label,
+    this.bottomSpacing = AppSpacing.sm,
+  });
 
   final String label;
   final double bottomSpacing;
@@ -363,4 +368,3 @@ class _Footer extends StatelessWidget {
     );
   }
 }
-

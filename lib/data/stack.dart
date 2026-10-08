@@ -50,8 +50,9 @@ class Stack {
       isHidden: isHidden ?? this.isHidden,
       imageData: clearImage ? null : (imageData ?? this.imageData),
       colorKey: clearColor ? null : (colorKey ?? this.colorKey),
-      projectedPrice:
-          clearProjectedPrice ? null : (projectedPrice ?? this.projectedPrice),
+      projectedPrice: clearProjectedPrice
+          ? null
+          : (projectedPrice ?? this.projectedPrice),
       projectedPriceCurrency: clearProjectedPrice
           ? null
           : (projectedPriceCurrency ?? this.projectedPriceCurrency),
@@ -59,16 +60,16 @@ class Stack {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'sats': sats,
-        if (isHidden) 'isHidden': true,
-        if (imageData != null) 'imageData': imageData,
-        if (colorKey != null) 'colorKey': colorKey,
-        if (projectedPrice != null) 'projectedPrice': projectedPrice,
-        if (projectedPriceCurrency != null)
-          'projectedPriceCurrency': projectedPriceCurrency,
-      };
+    'id': id,
+    'name': name,
+    'sats': sats,
+    if (isHidden) 'isHidden': true,
+    if (imageData != null) 'imageData': imageData,
+    if (colorKey != null) 'colorKey': colorKey,
+    if (projectedPrice != null) 'projectedPrice': projectedPrice,
+    if (projectedPriceCurrency != null)
+      'projectedPriceCurrency': projectedPriceCurrency,
+  };
 
   static Stack? fromJson(Object? raw) {
     if (raw is! Map) return null;
@@ -88,8 +89,9 @@ class Stack {
       imageData: image is String ? image : null,
       colorKey: color is String ? color : null,
       projectedPrice: projected is num ? projected.toDouble() : null,
-      projectedPriceCurrency:
-          projectedCurrency is String ? projectedCurrency : null,
+      projectedPriceCurrency: projectedCurrency is String
+          ? projectedCurrency
+          : null,
     );
   }
 }

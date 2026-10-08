@@ -77,8 +77,10 @@ class RollingNumber extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final metrics =
-        DigitCellMetrics.of(style, MediaQuery.textScalerOf(context));
+    final metrics = DigitCellMetrics.of(
+      style,
+      MediaQuery.textScalerOf(context),
+    );
     final cellHeight = metrics.height;
     final baseline = metrics.baseline;
     final capHeight = (style.fontSize ?? 14) * 0.52;
@@ -90,26 +92,30 @@ class RollingNumber extends StatelessWidget {
       final code = ch.codeUnitAt(0);
       final isDigit = code >= 0x30 && code <= 0x39;
       if (isDigit) {
-        children.add(_RollingDigit(
-          digit: code - 0x30,
-          direction: direction >= 0 ? 1 : -1,
-          animate: animate,
-          style: style,
-          duration: duration,
-          curve: curve,
-          // Position-based key so digit identity stays stable across rebuilds
-          // (otherwise the comma shifting would re-key every digit and reset
-          // the rolling state).
-          key: ValueKey('digit-$i'),
-        ));
-      } else {
-        children.add(SizedBox(
-          height: cellHeight,
-          child: Transform.translate(
-            offset: Offset(0, shiftY),
-            child: Text(ch, style: style),
+        children.add(
+          _RollingDigit(
+            digit: code - 0x30,
+            direction: direction >= 0 ? 1 : -1,
+            animate: animate,
+            style: style,
+            duration: duration,
+            curve: curve,
+            // Position-based key so digit identity stays stable across rebuilds
+            // (otherwise the comma shifting would re-key every digit and reset
+            // the rolling state).
+            key: ValueKey('digit-$i'),
           ),
-        ));
+        );
+      } else {
+        children.add(
+          SizedBox(
+            height: cellHeight,
+            child: Transform.translate(
+              offset: Offset(0, shiftY),
+              child: Text(ch, style: style),
+            ),
+          ),
+        );
       }
     }
     return Row(
@@ -248,8 +254,10 @@ class _RollingDigitState extends State<_RollingDigit>
 
   @override
   Widget build(BuildContext context) {
-    final metrics =
-        DigitCellMetrics.of(widget.style, MediaQuery.textScalerOf(context));
+    final metrics = DigitCellMetrics.of(
+      widget.style,
+      MediaQuery.textScalerOf(context),
+    );
     final cellHeight = metrics.height;
     final cellWidth = metrics.width;
     final baseline = metrics.baseline;

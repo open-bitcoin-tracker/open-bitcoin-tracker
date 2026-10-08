@@ -138,14 +138,11 @@ void main() {
     });
 
     test('btc: caps fractional digits at 8', () {
-      expect(
-        insertChar('0.12345678', 10, '9', ConverterInputUnit.btc),
-        isNull,
-      );
-      expect(
-        insertChar('0.1234567', 9, '8', ConverterInputUnit.btc),
-        ('0.12345678', 10),
-      );
+      expect(insertChar('0.12345678', 10, '9', ConverterInputUnit.btc), isNull);
+      expect(insertChar('0.1234567', 9, '8', ConverterInputUnit.btc), (
+        '0.12345678',
+        10,
+      ));
     });
 
     test('inserts at caret, not just at end', () {
@@ -183,28 +180,48 @@ void main() {
 
     test('same unit is identity', () {
       expect(
-        convertRaw('1.5', from: ConverterInputUnit.btc, to: ConverterInputUnit.btc, rate: rate),
+        convertRaw(
+          '1.5',
+          from: ConverterInputUnit.btc,
+          to: ConverterInputUnit.btc,
+          rate: rate,
+        ),
         '1.5',
       );
     });
 
     test('empty input is empty', () {
       expect(
-        convertRaw('', from: ConverterInputUnit.fiat, to: ConverterInputUnit.btc, rate: rate),
+        convertRaw(
+          '',
+          from: ConverterInputUnit.fiat,
+          to: ConverterInputUnit.btc,
+          rate: rate,
+        ),
         '',
       );
     });
 
     test('fiat involved + rate=0 yields empty', () {
       expect(
-        convertRaw('1.0', from: ConverterInputUnit.btc, to: ConverterInputUnit.fiat, rate: 0),
+        convertRaw(
+          '1.0',
+          from: ConverterInputUnit.btc,
+          to: ConverterInputUnit.fiat,
+          rate: 0,
+        ),
         '',
       );
     });
 
     test('btc↔sats works without a rate', () {
       expect(
-        convertRaw('0.001', from: ConverterInputUnit.btc, to: ConverterInputUnit.sats, rate: 0),
+        convertRaw(
+          '0.001',
+          from: ConverterInputUnit.btc,
+          to: ConverterInputUnit.sats,
+          rate: 0,
+        ),
         '100000',
       );
     });

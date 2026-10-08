@@ -1,0 +1,54 @@
+{
+  "stacks": [
+    {
+      "id": "original-stack",
+      "name": "Savings",
+      "sats": 123456789,
+      "isHidden": true,
+      "imageData": "image",
+      "colorKey": "orange",
+      "projectedPrice": 200000.0,
+      "projectedPriceCurrency": "GBP"
+    }
+  ],
+  "currency": "GBP",
+  "selectedCurrencies": [
+    "GBP",
+    "EUR",
+    "USD"
+  ],
+  "showPortfolio": true,
+  "showChart": false,
+  "chartHeight": "xl",
+  "theme": "dark",
+  "darkVariant": "blue",
+  "lightVariant": "cream",
+  "btcRange": "1D",
+  "daysOverflowQuickRange": "3D",
+  "weeksOverflowQuickRange": "2W",
+  "overflowQuickRange": "5Y",
+  "monthsOverflowQuickRange": "3M",
+  "logScale": false,
+  "bitcoinDisplayMode": "sats",
+  "stacksAuthMode": "pin",
+  "stacksLockTimeout": "1m",
+  "language": "system",
+  "livePriceCadence": "5s",
+  "converterCurrency": "EUR",
+  "converterBtcMode": "sats",
+  "converterMode": "sats",
+  "converterFiatModeRaw": "12.34",
+  "converterFiatModeActiveSlot": "bottom",
+  "converterSatsModeRaw": "100000000",
+  "converterSatsModeActiveSlot": "top",
+  "homeWidgetOrder": [
+    "stacks"
+  ],
+  "totalImageData": "total-image",
+  "totalColorKey": "orange",
+  "totalProjectedPrice": 250000.0,
+  "totalProjectedPriceCurrency": "EUR",
+  "swipeChipHintDismissed": true,
+  "priceSwipeHintDismissed": true,
+  "showPriceDelta": true
+}

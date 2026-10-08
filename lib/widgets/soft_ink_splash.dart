@@ -21,39 +21,40 @@ class SoftInkSplash extends InteractiveInkFeature {
     required double targetRadius,
     BorderRadius? borderRadius,
     super.onRemoved,
-  })  : _position = position,
-        _borderRadius = borderRadius ?? BorderRadius.zero,
-        _textDirection = textDirection,
-        super(color: color) {
-    _radiusController = AnimationController(
-      duration: _kRadiusDuration,
-      vsync: controller.vsync,
-    )
-      ..addListener(controller.markNeedsPaint)
-      ..forward();
+  }) : _position = position,
+       _borderRadius = borderRadius ?? BorderRadius.zero,
+       _textDirection = textDirection,
+       super(color: color) {
+    _radiusController =
+        AnimationController(duration: _kRadiusDuration, vsync: controller.vsync)
+          ..addListener(controller.markNeedsPaint)
+          ..forward();
     _radius = _radiusController.drive(
-      Tween<double>(begin: 0, end: targetRadius)
-          .chain(CurveTween(curve: Curves.easeOutCubic)),
+      Tween<double>(
+        begin: 0,
+        end: targetRadius,
+      ).chain(CurveTween(curve: Curves.easeOutCubic)),
     );
 
     final int peakAlpha = (color.a * 255.0).round().clamp(0, 255);
-    _fadeInController = AnimationController(
-      duration: _kFadeInDuration,
-      vsync: controller.vsync,
-    )
-      ..addListener(controller.markNeedsPaint)
-      ..forward();
+    _fadeInController =
+        AnimationController(duration: _kFadeInDuration, vsync: controller.vsync)
+          ..addListener(controller.markNeedsPaint)
+          ..forward();
     _fadeIn = _fadeInController.drive(IntTween(begin: 0, end: peakAlpha));
 
-    _fadeOutController = AnimationController(
-      duration: _kFadeOutDuration,
-      vsync: controller.vsync,
-    )
-      ..addListener(controller.markNeedsPaint)
-      ..addStatusListener(_handleFadeOutStatus);
+    _fadeOutController =
+        AnimationController(
+            duration: _kFadeOutDuration,
+            vsync: controller.vsync,
+          )
+          ..addListener(controller.markNeedsPaint)
+          ..addStatusListener(_handleFadeOutStatus);
     _fadeOut = _fadeOutController.drive(
-      IntTween(begin: peakAlpha, end: 0)
-          .chain(CurveTween(curve: Curves.easeOut)),
+      IntTween(
+        begin: peakAlpha,
+        end: 0,
+      ).chain(CurveTween(curve: Curves.easeOut)),
     );
 
     controller.addInkFeature(this);
@@ -70,7 +71,8 @@ class SoftInkSplash extends InteractiveInkFeature {
   late final AnimationController _fadeOutController;
   late final Animation<int> _fadeOut;
 
-  static const InteractiveInkFeatureFactory splashFactory = _SoftInkSplashFactory();
+  static const InteractiveInkFeatureFactory splashFactory =
+      _SoftInkSplashFactory();
 
   bool _fadingOut = false;
 
@@ -117,11 +119,7 @@ class SoftInkSplash extends InteractiveInkFeature {
     // visibly colored before the soft falloff begins.
     final Paint paint = Paint()
       ..shader = RadialGradient(
-        colors: [
-          baseColor,
-          baseColor,
-          baseColor.withAlpha(0),
-        ],
+        colors: [baseColor, baseColor, baseColor.withAlpha(0)],
         stops: const [0.0, 0.55, 1.0],
       ).createShader(Rect.fromCircle(center: _position, radius: radius));
 
@@ -135,9 +133,7 @@ class SoftInkSplash extends InteractiveInkFeature {
 
     final Rect clipRect = Offset.zero & referenceBox.size;
     if (_borderRadius != BorderRadius.zero) {
-      canvas.clipRRect(
-        _borderRadius.resolve(_textDirection).toRRect(clipRect),
-      );
+      canvas.clipRRect(_borderRadius.resolve(_textDirection).toRRect(clipRect));
     } else {
       canvas.clipRect(clipRect);
     }
@@ -166,7 +162,8 @@ class _SoftInkSplashFactory extends InteractiveInkFeatureFactory {
     final Rect bounds = rectCallback != null
         ? rectCallback()
         : Offset.zero & referenceBox.size;
-    final double targetRadius = radius ?? _defaultTargetRadius(bounds, position);
+    final double targetRadius =
+        radius ?? _defaultTargetRadius(bounds, position);
     return SoftInkSplash(
       controller: controller,
       referenceBox: referenceBox,

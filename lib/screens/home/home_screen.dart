@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -8,34 +6,26 @@ import '../../data/app_enums.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../services/app_haptics.dart';
 import '../../services/route_observer.dart';
-import '../../services/stacks_unlock_orchestrator.dart';
 import '../../state/state.dart';
 import '../../theme/theme.dart';
-import '../../widgets/avatar_sheet.dart';
 import '../../widgets/scroll_hairline.dart';
-import '../../widgets/stack_card.dart';
-import '../pin_entry_screen.dart';
 import 'header/home_header.dart';
 import 'header/home_header_section.dart';
 import 'widgets/home_buttons.dart';
 import 'widgets/locked_stacks_skeleton.dart';
 import 'widgets/stacks_widget.dart';
-import '../stack_detail/total_detail_screen.dart';
-
+import 'widgets/add_stack_empty_button.dart';
+import 'widgets/portfolio_total_card.dart';
+import 'home_unlock_actions.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({
-    super.key,
-    this.onAddStack,
-    this.onOpenConverter,
-  });
+  const HomeScreen({super.key, this.onAddStack, this.onOpenConverter});
 
   final VoidCallback? onAddStack;
   final VoidCallback? onOpenConverter;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
-
 }
 
 class _HomeScreenState extends State<HomeScreen>
@@ -216,7 +206,17 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final app = context.watch<AppStateNotifier>();
+    context.select<AppStateNotifier, Object>(
+      (app) => (
+        app.state.portfolio,
+        app.state.currencies,
+        app.state.appearance,
+        app.state.chart,
+        app.state.security,
+        app.screenshotMode,
+      ),
+    );
+    final app = context.read<AppStateNotifier>();
 
     final newChartPx = app.chartHeight.px;
     if (_animatedChartPx != null &&
@@ -225,7 +225,10 @@ class _HomeScreenState extends State<HomeScreen>
         _chartHeightAnim != null) {
       final fromPx = _chartHeightAnim!.value;
       _chartHeightAnim = Tween<double>(begin: fromPx, end: newChartPx).animate(
-        CurvedAnimation(parent: _chartHeightCtrl!, curve: Curves.easeInOutCubic),
+        CurvedAnimation(
+          parent: _chartHeightCtrl!,
+          curve: Curves.easeInOutCubic,
+        ),
       );
       _animatedChartPx = newChartPx;
       _chartHeightCtrl!
@@ -264,9 +267,8 @@ class _HomeScreenState extends State<HomeScreen>
       onOpenConverter: widget.onOpenConverter,
     );
 
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: _buildOrderedWidgets(context, app),
+    final content = SliverMainAxisGroup(
+      slivers: _buildOrderedSlivers(context, app),
     );
 
     // The "Stacks" section title pins below the header and stays put while the
@@ -322,10 +324,9 @@ class _HomeScreenState extends State<HomeScreen>
                           ? AppLocalizations.of(context).homeUnlockStacks
                           : AppLocalizations.of(context).settingsLockStacks,
                       onTap: stacksLocked
-                          ? () => _attemptUnlock(context)
-                          : () => context
-                                .read<StacksLockController>()
-                                .lockNow(),
+                          ? () => HomeUnlockActions.attemptUnlock(context)
+                          : () =>
+                                context.read<StacksLockController>().lockNow(),
                     ),
                   ],
                   // The overflow menu offers actions that need at least one
@@ -372,10 +373,7 @@ class _HomeScreenState extends State<HomeScreen>
       // raw-pointer scrubbing are unaffected.
       child: GestureDetector(
         onVerticalDragUpdate: (_) {},
-        child: ColoredBox(
-          color: cs.surfaceContainerLow,
-          child: headerSection,
-        ),
+        child: ColoredBox(color: cs.surfaceContainerLow, child: headerSection),
       ),
     );
 
@@ -417,18 +415,26 @@ class _HomeScreenState extends State<HomeScreen>
                     // box is full-size before the chart starts animating.
                     height: isLandscape
                         ? MediaQuery.sizeOf(context).height -
-                            MediaQuery.paddingOf(context).top
+                              MediaQuery.paddingOf(context).top
                         : _headerChrome != null && _chartHeightAnim != null
-                            ? _headerChrome! + _chartHeightAnim!.value
-                            : _headerHeight!,
+                        ? _headerChrome! + _chartHeightAnim!.value
+                        : _headerHeight!,
                     constrained: isLandscape,
                     child: measuredHeader,
                   ),
                 )
               else
-                SliverToBoxAdapter(child: measuredHeader),
+                SliverToBoxAdapter(
+                  child: isLandscape
+                      ? SizedBox(
+                          height: MediaQuery.sizeOf(context).height,
+                          child: measuredHeader,
+                        )
+                      : measuredHeader,
+                ),
               if (!isLandscape) ...[
-                if (stacks.isNotEmpty || (stacksLocked && app.lockedStackCount > 0)) ...[
+                if (stacks.isNotEmpty ||
+                    (stacksLocked && app.lockedStackCount > 0)) ...[
                   if (_stacksTitleHeight != null)
                     SliverPersistentHeader(
                       pinned: true,
@@ -446,8 +452,9 @@ class _HomeScreenState extends State<HomeScreen>
                     sliver: SliverToBoxAdapter(
                       child: LockedStacksSkeleton(
                         stackCount: app.lockedStackCount,
-                        showTotal: app.showPortfolio && app.lockedStackCount >= 2,
-                        onTap: () => _attemptUnlock(context),
+                        showTotal:
+                            app.showPortfolio && app.lockedStackCount >= 2,
+                        onTap: () => HomeUnlockActions.attemptUnlock(context),
                       ),
                     ),
                   )
@@ -456,16 +463,11 @@ class _HomeScreenState extends State<HomeScreen>
                     hasScrollBody: false,
                     child: Align(
                       alignment: const Alignment(0, -0.2),
-                      child: _AddStackEmptyButton(onPressed: _onAddStackTap),
+                      child: AddStackEmptyButton(onPressed: _onAddStackTap),
                     ),
                   )
                 else
-                  SliverPadding(
-                    padding: stacksAreaPadding,
-                    sliver: SliverToBoxAdapter(
-                      child: content,
-                    ),
-                  ),
+                  SliverPadding(padding: stacksAreaPadding, sliver: content),
               ],
             ],
           ),
@@ -474,10 +476,11 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  /// Per-widget renderers for the reorderable home-widgets list. Each block
-  /// contributes a list of children so this method can interleave SizedBox
-  /// gaps without nesting Columns.
-  List<Widget> _buildOrderedWidgets(BuildContext context, AppStateNotifier app) {
+  /// Preserves home-widget order while each section owns a lazy sliver.
+  List<Widget> _buildOrderedSlivers(
+    BuildContext context,
+    AppStateNotifier app,
+  ) {
     final result = <Widget>[];
     for (var i = 0; i < app.homeWidgetOrder.length; i++) {
       final hw = app.homeWidgetOrder[i];
@@ -488,7 +491,9 @@ class _HomeScreenState extends State<HomeScreen>
       }
       if (children.isEmpty) continue;
       if (result.isNotEmpty) {
-        result.add(const SizedBox(height: AppSpacing.lg));
+        result.add(
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
+        );
       }
       result.addAll(children);
     }
@@ -502,229 +507,22 @@ class _HomeScreenState extends State<HomeScreen>
     final totalSats = stacks.fold<int>(0, (sum, s) => sum + s.sats);
     return [
       if (stacks.isNotEmpty)
-        HomeStackList(
+        HomeStackSliver(
           stacks: stacks,
           currency: currency,
           btcDisplayMode: app.btcDisplayMode,
           totalCard: showTotal
-              ? _totalCard(context, app, totalSats, currency)
+              ? PortfolioTotalCard(
+                  app: app,
+                  totalSats: totalSats,
+                  currency: currency,
+                )
               : null,
         ),
     ];
   }
 
-  Widget _totalCard(
-    BuildContext context,
-    AppStateNotifier app,
-    int totalSats,
-    Currency currency,
-  ) {
-    final l10n = AppLocalizations.of(context);
-    return Builder(
-      // Selecting the rate here (not in the screen build) confines the
-      // per-tick rebuild to this card's subtree.
-      builder: (cardContext) => StackCard(
-        name: l10n.totalCardName,
-        sats: totalSats,
-        currency: currency,
-        btcRate: cardContext.select<LivePriceController, double?>(
-          (c) => c.rates.forCurrency(currency),
-        ),
-        btcDisplayMode: app.btcDisplayMode,
-        imageData: app.state.totalImageData,
-        colorKey: app.state.totalColorKey ?? 'grey',
-        position: StackCardPosition.last,
-        onTap: () {
-          AppHaptics.light();
-          Navigator.of(context).push<void>(
-            MaterialPageRoute<void>(
-              builder: (_) => const TotalDetailScreen(),
-            ),
-          );
-        },
-        onAvatarTap: () {
-          AppHaptics.light();
-          _showTotalAvatarSheet(cardContext, app);
-        },
-      ),
-    );
-  }
-
-  Future<void> _showTotalAvatarSheet(
-    BuildContext iconContext,
-    AppStateNotifier app,
-  ) {
-    final l10n = AppLocalizations.of(iconContext);
-    return showAvatarSheet(
-      iconContext,
-      title: l10n.totalCardName,
-      currentImageData: app.state.totalImageData,
-      currentColorKey: app.state.totalColorKey ?? 'grey',
-      onColorSet: (key) => app.setTotalColorKey(key ?? 'orange'),
-      onImageSet: app.setTotalImageData,
-      onImageCleared: () => app.setTotalImageData(null),
-    );
-  }
-
-  Future<void> _attemptUnlock(BuildContext context) async {
-    final mode = context.read<AppStateNotifier>().stacksAuthMode;
-    final lock = context.read<StacksLockController>();
-    if (mode == StacksAuthMode.off) {
-      lock.unlock();
-      return;
-    }
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = AppLocalizations.of(context);
-    if (mode == StacksAuthMode.device) {
-      final orch = context.read<StacksUnlockOrchestrator>();
-      final app = context.read<AppStateNotifier>();
-      var outcome = await orch.unlockWithDevice();
-      if (outcome == UnlockOutcome.wrongCredential &&
-          !app.stacksEncryptedAtRest) {
-        outcome = await orch.migrateOrInitDeviceMode();
-      }
-      if (!mounted) return;
-      switch (outcome) {
-        case UnlockOutcome.success:
-          AppHaptics.medium();
-          lock.unlock();
-        case UnlockOutcome.wrongCredential:
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.snackAuthenticationFailed)),
-          );
-        case UnlockOutcome.corruptBlob:
-          _handleCorruptStacks(messenger, l10n);
-      }
-      return;
-    }
-    // mode == pin
-    final result = await Navigator.of(context).push<Object?>(
-      MaterialPageRoute<Object?>(
-        builder: (_) => const PinEntryScreen.verify(),
-      ),
-    );
-    if (!mounted) return;
-    if (isPinCorruptResult(result)) {
-      _handleCorruptStacks(messenger, l10n);
-      return;
-    }
-    // Unlock and haptic already fired in PinEntryScreen._handleVerify so
-    // the home screen updates during the pop animation. Nothing to do here.
-  }
-
   void _onAddStackTap() {
     widget.onAddStack?.call();
   }
-
-  void _handleCorruptStacks(
-    ScaffoldMessengerState messenger,
-    AppLocalizations l10n,
-  ) {
-    // The on-disk envelope failed its MAC check. The data cannot be recovered
-    // — the only path forward is wiping wraps and stacks so the user can set
-    // up the lock again from a clean state. We surface this here as a snack
-    // bar; the destructive reset itself lives in Settings → Reset stacks lock
-    // so the user has to make a deliberate choice.
-    messenger.showSnackBar(
-      SnackBar(content: Text(l10n.snackStacksCorrupted)),
-    );
-  }
 }
-
-// ---------------------------------------------------------------------------
-// Empty-state Add Stack button with pulsing orange ripple rings.
-// ---------------------------------------------------------------------------
-
-class _AddStackEmptyButton extends StatefulWidget {
-  const _AddStackEmptyButton({required this.onPressed});
-  final VoidCallback onPressed;
-
-  @override
-  State<_AddStackEmptyButton> createState() => _AddStackEmptyButtonState();
-}
-
-class _AddStackEmptyButtonState extends State<_AddStackEmptyButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 8000),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (context, child) {
-        return CustomPaint(
-          painter: _RipplePainter(progress: _ctrl.value),
-          child: child,
-        );
-      },
-      child: FilledButton(
-        onPressed: widget.onPressed,
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.bitcoinOrange,
-          foregroundColor: Colors.white,
-          minimumSize: const Size(0, 64),
-          textStyle: AppTypography.body.copyWith(
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radius),
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-            vertical: AppSpacing.md,
-          ),
-        ),
-        child: Builder(
-          builder: (context) =>
-              Text(AppLocalizations.of(context).homeAddStack),
-        ),
-      ),
-    );
-  }
-}
-
-class _RipplePainter extends CustomPainter {
-  _RipplePainter({required this.progress});
-  final double progress;
-
-  static const _ringCount = 3;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const baseRadius = AppSpacing.radius;
-    const maxInset = 28.0;
-    for (var i = 0; i < _ringCount; i++) {
-      final t = (progress + i / _ringCount) % 1.0;
-      final inset = -maxInset * t;
-      final rrect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(inset, inset, size.width - inset * 2, size.height - inset * 2),
-        Radius.circular(baseRadius - inset),
-      );
-      final opacity = (1.0 - t) * 0.15;
-      final paint = Paint()
-        ..color = AppColors.bitcoinOrange.withValues(alpha: opacity)
-        ..style = PaintingStyle.fill;
-      canvas.drawRRect(rrect, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_RipplePainter old) => old.progress != progress;
-}
-

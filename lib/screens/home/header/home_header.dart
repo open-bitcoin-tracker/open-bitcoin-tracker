@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 
 import '../../../api/api.dart';
+import '../../../api/ohlc_window.dart';
 import '../../../data/data.dart' hide Stack;
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../state/state.dart';
@@ -235,64 +236,66 @@ class _HomeHeaderState extends State<HomeHeader> {
       const pad = 16.0;
       return LayoutBuilder(
         builder: (context, constraints) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(pad * 2, pad, pad * 2, 0),
-                child: priceRow,
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned.fill(
-                      child: _buildChartArea(context, logScale: logScale),
-                    ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: _buildChipHint(context),
-                    ),
-                  ],
+          return ClipRect(
+            child: _ChartHeaderColumn(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(pad * 2, pad, pad * 2, 0),
+                  child: priceRow,
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(pad, 0, pad, 4),
-                child: rangeBar,
-              ),
-            ],
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned.fill(
+                        child: _buildChartArea(context, logScale: logScale),
+                      ),
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: _buildChipHint(context),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(pad, 0, pad, 4),
+                  child: rangeBar,
+                ),
+              ],
+            ),
           );
         },
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        priceRow,
-        const SizedBox(height: 8),
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeInOutCubic,
-              height: chartHeight.px,
-              child: _buildChartArea(context, logScale: logScale),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: _buildChipHint(context),
-            ),
-          ],
-        ),
-        rangeBar,
-      ],
+    return ClipRect(
+      child: _ChartHeaderColumn(
+        children: [
+          priceRow,
+          const SizedBox(height: 8),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeInOutCubic,
+                height: chartHeight.px,
+                child: _buildChartArea(context, logScale: logScale),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: _buildChipHint(context),
+              ),
+            ],
+          ),
+          rangeBar,
+        ],
+      ),
     );
   }
 
@@ -351,67 +354,89 @@ class _HomeHeaderState extends State<HomeHeader> {
         ? widget.allHistoryEmpty
         : widget.loading;
 
-    final Widget child;
-    if (loading) {
-      child = Center(
-        key: const ValueKey('loading'),
-        child: SizedBox(
-          width: 40,
-          height: 40,
-          child: CircularProgressIndicator(
-            strokeWidth: 4,
-            color: p.bitcoinOrange,
-          ),
+    final waiting = loading && widget.chartData.length < 2;
+    return Stack(
+      clipBehavior: Clip.none,
+      fit: StackFit.expand,
+      children: [
+        // One persistent instance owns the camera, even across unavailable data.
+        AreaChart(
+          data: widget.chartData,
+          windowStartMs: widget.chartWindowStartMs,
+          windowEndMs: widget.chartWindowEndMs,
+          color: widget.chartColor,
+          logScale: logScale,
+          rangeKey: widget.range,
+          seriesKey: widget.usesAllHistory
+              ? 'daily'
+              : OhlcWindow.forRange(widget.range)!.intervalMinutes,
+          selectionEnabled: !waiting && !widget.failed,
+          onHover: widget.onHover,
         ),
-      );
-    } else if (widget.failed) {
-      child = Center(
-        key: const ValueKey('failed'),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              AppLocalizations.of(context).chartErrorTitle,
-              style: AppTypography.body.copyWith(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: cs.onSurface,
+        if (waiting)
+          Center(
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(
+                strokeWidth: 4,
+                color: p.bitcoinOrange,
               ),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            ChartRetryButton(onTap: widget.onRetry),
-          ],
-        ),
+          )
+        else if (widget.failed)
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  AppLocalizations.of(context).chartErrorTitle,
+                  style: AppTypography.body.copyWith(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                ChartRetryButton(onTap: widget.onRetry),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// Preserve Column layout/hit testing, but paint the plot (child 2) first so
+// its upward overflow sits behind the price/navigation. The outer ClipRect
+// contains it inside the header, including the landscape viewport.
+class _ChartHeaderColumn extends Column {
+  const _ChartHeaderColumn({required super.children})
+    : super(crossAxisAlignment: CrossAxisAlignment.stretch);
+
+  @override
+  RenderFlex createRenderObject(BuildContext context) =>
+      _RenderChartHeaderColumn(textDirection: Directionality.of(context));
+}
+
+class _RenderChartHeaderColumn extends RenderFlex {
+  _RenderChartHeaderColumn({required super.textDirection})
+    : super(
+        direction: Axis.vertical,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
       );
-    } else if (widget.chartData.length < 2) {
-      child = const SizedBox.shrink(key: ValueKey('empty'));
-    } else {
-      child = AreaChart(
-        // Two stable buckets — 'long' (all-history camera) and 'short'
-        // (intraday) — rather than a per-range key. Keeping the key stable
-        // *within* a bucket means switching between short ranges (2D → 3D,
-        // 1W → 2W) reuses the same AreaChart instance, so its didUpdateWidget
-        // zoom tween fires and the window animates exactly like the long-range
-        // ranges do, instead of the AnimatedSwitcher hard-swapping a fresh
-        // chart with no "from" state. Long↔short still swaps (different bucket)
-        // since those datasets live on different scales and a fade reads better
-        // there than a cross-scale pan.
-        key: ValueKey(widget.usesAllHistory ? 'long' : 'short'),
-        data: widget.chartData,
-        windowStartMs: widget.chartWindowStartMs,
-        windowEndMs: widget.chartWindowEndMs,
-        color: widget.chartColor,
-        logScale: logScale,
-        rangeKey: widget.range,
-        onHover: widget.onHover,
-      );
+
+  @override
+  void defaultPaint(PaintingContext context, Offset offset) {
+    final children = getChildrenAsList();
+    void paintChild(RenderBox child) {
+      final data = child.parentData! as FlexParentData;
+      context.paintChild(child, data.offset + offset);
     }
 
-    return AnimatedSwitcher(
-      duration: AppSpacing.motionDuration,
-      switchInCurve: Curves.easeOut,
-      switchOutCurve: Curves.easeIn,
-      child: child,
-    );
+    if (children.length > 2) paintChild(children[2]);
+    for (var i = 0; i < children.length; i++) {
+      if (i != 2) paintChild(children[i]);
+    }
   }
 }

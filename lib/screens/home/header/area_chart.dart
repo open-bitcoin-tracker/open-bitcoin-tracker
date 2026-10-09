@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../api/api.dart';
 import 'chart_spot_cache.dart';
+import 'chart_motion.dart';
 
 class AreaChart extends StatefulWidget {
   const AreaChart({
@@ -15,6 +16,8 @@ class AreaChart extends StatefulWidget {
     required this.logScale,
     required this.rangeKey,
     required this.onHover,
+    this.seriesKey = 'daily',
+    this.selectionEnabled = true,
   });
 
   final List<PricePoint> data;
@@ -28,6 +31,8 @@ class AreaChart extends StatefulWidget {
   // didUpdateWidget; the chart never reads any semantics off it.
   final Object rangeKey;
   final ValueChanged<PricePoint?> onHover;
+  final Object seriesKey;
+  final bool selectionEnabled;
 
   @override
   State<AreaChart> createState() => _AreaChartState();
@@ -39,45 +44,8 @@ class _AreaChartState extends State<AreaChart> with TickerProviderStateMixin {
   late List<FlSpot> _spots;
   List<FlSpot>? _linearSpots;
   List<FlSpot>? _logSpots;
-  late final AnimationController _scaleFadeController;
-  bool? _scaleDisplayLogScale = false;
-  bool get _activeLogScale => _scaleDisplayLogScale ?? widget.logScale;
-
-  // The curve that was on screen when the current zoom tween started. On a
-  // zoom-IN (3D → 2D) the incoming dataset is shorter than the outgoing
-  // window, so painting the new (short) curve while the window is still wide
-  // shows an empty/cropped left edge until the window catches up. To match the
-  // all-history ranges — which never swap the curve, only the window — we keep
-  // painting this outgoing curve for the duration of a zoom-in and only adopt
-  // the new spots when the tween settles. Null when no tween is mid-flight or
-  // the transition is a zoom-out (the new curve already spans the window).
-  List<FlSpot>? _prevSpots;
-  bool _zoomingIn = false;
-
-  // Animated window endpoints. When the parent changes windowStartMs/End,
-  // we tween from the last-shown values to the new targets so the chart
-  // feels like a camera zoom instead of a data morph.
-  late final AnimationController _zoom =
-      AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 450),
-      )..addStatusListener((status) {
-        // Once the zoom-in window has finished narrowing onto the new range,
-        // drop the held outgoing curve so the new (shorter) curve takes over.
-        // No setState needed: the controller already drives a rebuild via the
-        // AnimatedBuilder on the completing frame, and this fires within it.
-        if (status == AnimationStatus.completed && _prevSpots != null) {
-          _prevSpots = null;
-        }
-      });
-  double? _animFromStartX;
-  double? _animFromEndX;
-  double? _animFromMinY;
-  double? _animFromMaxY;
-  double _targetStartX = 0;
-  double _targetEndX = 0;
-  double _targetMinY = 0;
-  double _targetMaxY = 0;
+  late final ChartMotion _motion = ChartMotion(this);
+  bool _reduceMotion = false;
 
   // Index into _spots/data of the point under the user's finger, or null when
   // not touching. Drives both the visual indicator (showingIndicators) and
@@ -99,41 +67,21 @@ class _AreaChartState extends State<AreaChart> with TickerProviderStateMixin {
   );
 
   @override
-  void initState() {
-    super.initState();
-    _scaleDisplayLogScale = widget.logScale;
-    _scaleFadeController =
-        AnimationController(
-          vsync: this,
-          duration: const Duration(milliseconds: 150),
-          value: 1.0,
-        )..addStatusListener((status) {
-          if (status == AnimationStatus.dismissed) {
-            if (!mounted) return;
-            if (_activeLogScale != widget.logScale) {
-              setState(() {
-                _scaleDisplayLogScale = widget.logScale;
-                _animFromStartX = null;
-                _animFromEndX = null;
-                _animFromMinY = null;
-                _animFromMaxY = null;
-                _prevSpots = null;
-              });
-            }
-            Future.microtask(() {
-              if (mounted) {
-                _scaleFadeController.forward();
-              }
-            });
-          }
-        });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = MediaQuery.disableAnimationsOf(context);
+    if (_reduceMotion) {
+      _motion.finish();
+      _ripple.stop();
+      _ripple.reset();
+    }
+    _updateMotion();
   }
 
   @override
   void dispose() {
-    _zoom.dispose();
+    _motion.dispose();
     _ripple.dispose();
-    _scaleFadeController.dispose();
     super.dispose();
   }
 
@@ -143,7 +91,7 @@ class _AreaChartState extends State<AreaChart> with TickerProviderStateMixin {
     _linearSpots = linear;
     _logSpots = logarithmic;
     _spotsForData = data;
-    _spots = _activeLogScale ? _logSpots! : _linearSpots!;
+    _spots = widget.logScale ? _logSpots! : _linearSpots!;
   }
 
   // Min/max y over spots whose x falls inside [startX, endX], with 5% padding.
@@ -170,15 +118,18 @@ class _AreaChartState extends State<AreaChart> with TickerProviderStateMixin {
   // across the full widget width (all titles/borders are hidden, so the plot
   // area is the whole box).
   void _handleTouch(Offset localPosition) {
-    if (_zoom.isAnimating || _scaleFadeController.value < 1.0) {
+    if (_motion.animating ||
+        !widget.selectionEnabled ||
+        _motion.scene?.rangeKey != widget.rangeKey) {
       _clearTouch();
       return;
     }
     final width = context.size?.width ?? 0;
     if (width <= 0 || _spots.isEmpty) return;
     final x =
-        _targetStartX +
-        (localPosition.dx / width) * (_targetEndX - _targetStartX);
+        widget.windowStartMs +
+        (localPosition.dx / width) *
+            (widget.windowEndMs - widget.windowStartMs);
     // Binary search for the first spot at or right of x; spots are sorted.
     var lo = 0;
     var hi = _spots.length - 1;
@@ -193,7 +144,7 @@ class _AreaChartState extends State<AreaChart> with TickerProviderStateMixin {
     final i = (lo > 0 && x - _spots[lo - 1].x < _spots[lo].x - x) ? lo - 1 : lo;
     if (!_ripple.isAnimating) {
       _ripple.duration = _rippleDuration;
-      _ripple.repeat();
+      if (!_reduceMotion) _ripple.repeat();
     }
     if (i == _touchedIndex) return;
     setState(() => _touchedIndex = i);
@@ -208,80 +159,43 @@ class _AreaChartState extends State<AreaChart> with TickerProviderStateMixin {
     widget.onHover(null);
   }
 
+  void _updateMotion() {
+    if (!identical(_spotsForData, widget.data) || _linearSpots == null) {
+      _rebuildCache();
+    }
+    // Empty incoming ranges leave the outgoing scene intact while loading.
+    if (widget.data.length < 2) return;
+    _spots = widget.logScale ? _logSpots! : _linearSpots!;
+    final start = widget.windowStartMs.toDouble();
+    final end = widget.windowEndMs.toDouble();
+    final (bottom, top) = _windowYFit(_spots, start, end);
+    _motion.update(
+      ChartScene(
+        spots: _spots,
+        camera: ChartCamera(start, end, bottom, top),
+        logScale: widget.logScale,
+        rangeKey: widget.rangeKey,
+        seriesKey: widget.seriesKey,
+      ),
+      immediate: _reduceMotion,
+    );
+  }
+
   @override
   void didUpdateWidget(covariant AreaChart old) {
     super.didUpdateWidget(old);
-    // The zoom tween should fire only on user-initiated transitions: changing
-    // the range (1M → 3M animates the all-history camera). The raw window
-    // endpoints drift forward by a few ms on every rebuild because windowEndMs
-    // trails DateTime.now(), and the data list gets a new identity on every
-    // currency switch (priceUsd × usdToCurrency produces a fresh list).
-    // Triggering the tween on either of those would re-fit minY/maxY to the
-    // rescaled spots and visibly bump the chart on every tick or fiat switch.
-    if (old.logScale != widget.logScale) {
-      _scaleFadeController.reverse();
-    } else if (old.rangeKey != widget.rangeKey) {
-      // Capture the currently-displayed values (mid-tween or settled) as
-      // the "from" so rapid re-taps pick up where we are, then restart the
-      // controller to animate toward the new window.
-      final t = _zoom.value;
-      if (_animFromStartX != null && _animFromEndX != null) {
-        _animFromStartX =
-            _animFromStartX! + (_targetStartX - _animFromStartX!) * t;
-        _animFromEndX = _animFromEndX! + (_targetEndX - _animFromEndX!) * t;
-        _animFromMinY = _animFromMinY! + (_targetMinY - _animFromMinY!) * t;
-        _animFromMaxY = _animFromMaxY! + (_targetMaxY - _animFromMaxY!) * t;
-      } else {
-        _animFromStartX = _targetStartX;
-        _animFromEndX = _targetEndX;
-        _animFromMinY = _targetMinY;
-        _animFromMaxY = _targetMaxY;
-      }
-      // A zoom-in is a narrowing window (new span < the window we're starting
-      // from). Only then do we need to hold the outgoing curve: on a zoom-out
-      // the incoming curve already covers the whole animating window, so the
-      // normal path (paint the new spots immediately) shows no crop. _spots
-      // still holds the outgoing curve here — build() rebuilds it for the new
-      // data on the next frame — so snapshot it now.
-      final newSpan = widget.windowEndMs - widget.windowStartMs;
-      final fromSpan = (_animFromEndX! - _animFromStartX!).abs();
-      _zoomingIn = newSpan < fromSpan;
-      _prevSpots = _zoomingIn && !identical(_spotsForData, widget.data)
-          ? _spots
-          : null;
-
-      _zoom.forward(from: 0);
+    if (old.rangeKey != widget.rangeKey ||
+        old.logScale != widget.logScale ||
+        !widget.selectionEnabled) {
+      _clearTouch();
     }
+    _updateMotion();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!identical(_spotsForData, widget.data) ||
-        _linearSpots == null ||
-        _logSpots == null) {
-      _rebuildCache();
-    }
     final cs = Theme.of(context).colorScheme;
     final color = widget.color;
-
-    final targetSpots = _activeLogScale ? _logSpots! : _linearSpots!;
-
-    final newTargetStart = widget.windowStartMs.toDouble();
-    final newTargetEnd = widget.windowEndMs.toDouble();
-    final (newTargetMinY, newTargetMaxY) = _windowYFit(
-      targetSpots,
-      newTargetStart,
-      newTargetEnd,
-    );
-    _targetStartX = newTargetStart;
-    _targetEndX = newTargetEnd;
-    _targetMinY = newTargetMinY;
-    _targetMaxY = newTargetMaxY;
-
-    final fromStart = _animFromStartX ?? newTargetStart;
-    final fromEnd = _animFromEndX ?? newTargetEnd;
-    final fromMinY = _animFromMinY ?? newTargetMinY;
-    final fromMaxY = _animFromMaxY ?? newTargetMaxY;
 
     // Scrubbing is deliberately NOT done through fl_chart's touch pipeline.
     // Its internal PanGestureRecognizer needs kPanSlop (~2× kTouchSlop) of
@@ -323,28 +237,23 @@ class _AreaChartState extends State<AreaChart> with TickerProviderStateMixin {
               }),
         },
         child: AnimatedBuilder(
-          animation: Listenable.merge([_zoom, _scaleFadeController]),
+          animation: _motion,
           builder: (context, _) {
-            final t = Curves.easeInOutCubic.transform(_zoom.value);
-            final minX = fromStart + (newTargetStart - fromStart) * t;
-            final maxX = fromEnd + (newTargetEnd - fromEnd) * t;
-            final minY = fromMinY + (newTargetMinY - fromMinY) * t;
-            final maxY = fromMaxY + (newTargetMaxY - fromMaxY) * t;
-
-            _spots = _activeLogScale ? _logSpots! : _linearSpots!;
-
-            // Hold the outgoing (wider) curve while a zoom-in window is still
-            // narrowing; once _prevSpots is cleared on completion we draw the new
-            // curve. See _prevSpots. The scrub indicator is suppressed mid-zoom
-            // (_handleTouch bails while animating), so indexing stays consistent.
-            final spots =
-                _prevSpots != null && _zoom.status != AnimationStatus.completed
-                ? _prevSpots!
-                : _spots;
+            final scene = _motion.scene;
+            if (scene == null) return const SizedBox.shrink();
+            final camera = scene.camera;
+            final minX = camera.start;
+            final maxX = camera.end;
+            final minY = camera.bottom;
+            final maxY = camera.top;
+            final spots = scene.spots;
             // Value-space coordinates of the dot fl_chart is painting for the
             // touched point, used to position the ripple overlay. Null when not
             // scrubbing or the index is out of range for the current curve.
-            final touched = switch (_touchedIndex) {
+            final selectedIndex = _motion.animating || !widget.selectionEnabled
+                ? null
+                : _touchedIndex;
+            final touched = switch (selectedIndex) {
               final i? when i < spots.length => spots[i],
               _ => null,
             };
@@ -411,7 +320,7 @@ class _AreaChartState extends State<AreaChart> with TickerProviderStateMixin {
                 lineBarsData: [
                   LineChartBarData(
                     spots: spots,
-                    showingIndicators: switch (_touchedIndex) {
+                    showingIndicators: switch (selectedIndex) {
                       final i? when i < spots.length => [i],
                       _ => const [],
                     },
@@ -442,34 +351,38 @@ class _AreaChartState extends State<AreaChart> with TickerProviderStateMixin {
             // top of the chart. RepaintBoundary keeps the pulsing repaints from
             // dirtying the chart layer.
             return Opacity(
-              opacity: Curves.easeInOut.transform(_scaleFadeController.value),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  chart,
-                  if (touched != null)
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: RepaintBoundary(
-                          child: AnimatedBuilder(
-                            animation: _ripple,
-                            builder: (context, _) => CustomPaint(
-                              painter: _RipplePainter(
-                                spotX: touched.x,
-                                spotY: touched.y,
-                                minX: minX,
-                                maxX: maxX,
-                                minY: minY,
-                                maxY: maxY,
-                                progress: _ripple.value,
-                                color: cs.primary,
+              opacity: _motion.opacity,
+              child: ClipRect(
+                clipper: _PlotClipper(MediaQuery.sizeOf(context).height),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  fit: StackFit.expand,
+                  children: [
+                    chart,
+                    if (touched != null)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: RepaintBoundary(
+                            child: AnimatedBuilder(
+                              animation: _ripple,
+                              builder: (context, _) => CustomPaint(
+                                painter: _RipplePainter(
+                                  spotX: touched.x,
+                                  spotY: touched.y,
+                                  minX: minX,
+                                  maxX: maxX,
+                                  minY: minY,
+                                  maxY: maxY,
+                                  progress: _ripple.value,
+                                  color: cs.primary,
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             );
           },
@@ -477,6 +390,21 @@ class _AreaChartState extends State<AreaChart> with TickerProviderStateMixin {
       ),
     );
   }
+}
+
+// Clip horizontally and below the plot, while allowing the curve to rise
+// behind the price. The header clips that overflow at its own outer boundary.
+class _PlotClipper extends CustomClipper<Rect> {
+  const _PlotClipper(this.screenHeight);
+  final double screenHeight;
+
+  @override
+  Rect getClip(Size size) =>
+      Rect.fromLTRB(0, -screenHeight, size.width, size.height);
+
+  @override
+  bool shouldReclip(_PlotClipper oldClipper) =>
+      oldClipper.screenHeight != screenHeight;
 }
 
 // Concentric orange rings expanding out of the selected point on the chart.

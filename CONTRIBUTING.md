@@ -1,258 +1,82 @@
-# Contributing to Open Bitcoin Tracker
+# Contributing
 
-Thanks for your interest in contributing. This document covers local setup, the development workflow, project structure, and a few non-obvious gotchas.
+## Setup and checks
 
-## Requirements
+Use **Flutter 3.41.7**, the version pinned in [CI](.github/workflows/check.yml), with Dart satisfying `^3.11.5` in [pubspec.yaml](pubspec.yaml). Install the Android SDK and JDK 17. Android SDK levels come from Flutter defaults in [android/app/build.gradle.kts](android/app/build.gradle.kts).
 
-- **Android 7.0 or higher** (API 24+) for the target device or emulator
-- **Dart 3.11.5 or higher**
-- **Flutter 3.41.7 or higher**
-- **Android SDK** (path configured in `android/local.properties`)
-
-The build uses Flutter's default `minSdk`, `compileSdk`, and `targetSdk` — no pinned overrides in `android/app/build.gradle.kts`.
-
-## Setup
-
-### 1. Install dependencies
-
-```bash
-flutter pub get
-```
-
-### 2. Configure local development
-
-Create `android/local.properties` and set:
+If Flutter has not generated `android/local.properties`, create it with your SDK paths:
 
 ```properties
 sdk.dir=/path/to/android-sdk
 flutter.sdk=/path/to/flutter
 ```
 
-### 3. Verify Android emulator
-
 ```bash
+flutter pub get
 flutter devices
+flutter run -d <device-id>
 ```
 
-You should see a running Android emulator (e.g. `emulator-5554`) in the list.
+Use the device ID reported by `flutter devices`. In the running terminal, press `r` for hot reload, `R` for hot restart, or `q` to quit.
 
-## Development
-
-### Run on emulator
+Before submitting changes, run the same checks as CI:
 
 ```bash
-flutter run -d emulator-5554
+bash tools/check.sh
 ```
 
-### Hot reload / restart
+The script installs dependencies, checks Dart formatting, runs static analysis, and runs tests. For a focused check, use `flutter analyze` or `flutter test test/path_to_test.dart`. Update images in `test/goldens/` only for intentional visual changes.
 
-In the terminal running `flutter run`, press:
-
-- `r` — Hot reload (preserves state)
-- `R` — Hot restart (resets state)
-- `q` — Quit
-
-### All checks
-
-Run `bash tools/check.sh` to install dependencies, verify Dart formatting, run static analysis, and execute the test suite. GitHub Actions runs the same command for pushes and pull requests, using Flutter 3.41.7.
-
-### Static analysis
-
-```bash
-flutter analyze
-```
-
-### Tests
-
-```bash
-flutter test
-```
-
-The suite includes storage compatibility, encrypted persistence, overlapping history requests, converter state, scrolling, range gestures, and visual regressions. Golden images in `test/goldens/` protect the existing screen appearance; update them only for intentional design changes.
-
-## Build
-
-### Debug APK
+## Builds and installation
 
 ```bash
 flutter build apk --debug
-```
-
-Output: `build/app/outputs/flutter-apk/app-debug.apk`
-
-### Release APK
-
-```bash
-flutter build apk --release
-```
-
-Output: `build/app/outputs/flutter-apk/app-release.apk`
-
-### Release APK (ARM-only)
-
-```bash
 flutter build apk --release --target-platform android-arm,android-arm64
-```
-
-Targets ARM devices only. The resulting APK is what gets uploaded to GitHub Releases.
-
-### Release AAB (Play Store, ARM-only)
-
-```bash
 flutter build appbundle --release --target-platform android-arm,android-arm64
 ```
 
-The AAB must be ARM-only — building without `--target-platform` includes an x86_64 split that the Play Store rejects (intended for emulators / Chromebooks).
+APKs land in `build/app/outputs/flutter-apk/`; the release bundle lands in `build/app/outputs/bundle/release/`. Release Gradle configuration targets ARM ABIs; pass the matching Flutter target flag above. For an arm64-only device, use `--target-platform android-arm64`.
 
-## Architecture
+For signed release builds, set `BTC_KEYSTORE_PROPERTIES` to an external properties file containing `storeFile`, `storePassword`, `keyAlias`, and `keyPassword`. Keep signing files and secrets outside version control. Without a valid configuration, Gradle falls back to debug signing; do not distribute that build as an official release.
 
-### Data layer
+To upgrade a device with existing holdings, use:
 
-- **`lib/data/`** — Immutable domain models, persistence, and encrypted storage
-  - `AppStateRepository` — Encrypted stack storage + settings cache
-  - `AppState` — Portfolio, currency, appearance, chart, security, and converter preferences
-  - `AppStateCodec` — Backward-compatible flat JSON storage format
-  - `MarketHistoryRepository` — History loading, freshness, request deduplication, and offline fallback
-  - `BtcHistoryCache` — Local history cache
-  - `BtcRatesCache` — Live BTC prices (Kraken WS ticker)
-
-### API layer
-
-- **`lib/api/`** — External integrations
-  - `KrakenStreamService` — Kraken WebSocket v2 real-time price feed
-  - `KrakenOhlcClient` — Kraken REST OHLC chart history endpoint
-
-### State management
-
-- **`lib/state/`** — `ChangeNotifier`-based reactive state
-  - `AppStateNotifier` — Settings and portfolio mutations with debounced persistence
-  - `ConverterState` — Converter inputs, mode, and persisted preferences
-  - `LivePriceController` — Stream lifecycle, publication cadence, and history coordination
-  - `ChartSeriesProjector` — Cached currency conversion and live-point projection
-  - `StacksLockController` — Authentication + DEK management
-
-### App composition
-
-- **`lib/app/`** — Provider ownership, stable service lifetimes, locale, and the app shell
-- **`lib/main.dart`** — Startup only
-
-### UI layer
-
-- **`lib/screens/`** — Feature screens and their local widgets
-  - Converter controls, slots, and pickers are separate from the screen coordinator
-  - Home range controls separate gestures, layout, labels, chips, and picker UI
-  - Stack rows use lazy slivers; chart geometry reuses historical points across live ticks
-- **`lib/widgets/`** — Reusable components
-- **`lib/theme/`** — Material Design 3 tokens and colors
-
-### Security
-
-- **Encryption at rest** — Stacks are encrypted under a Data Encryption Key (DEK)
-- **PIN-derived KEK** — PIN hashed via PBKDF2 + AES-256-GCM wraps the DEK
-- **Biometric binding** — Device biometric (fingerprint/face) gates DEK access via Keystore
-- **Secure storage** — DEK cached only in memory; encryption metadata in `SharedPreferences`
-
-## Project structure
-
-```
-.
-├── android/           # Android native scaffolding (Kotlin, AndroidManifest.xml)
-├── assets/            # Bundled data (Bitcoin history CSV, fonts, launcher icons)
-├── lib/
-│   ├── api/           # API clients (Kraken WS/REST)
-│   ├── app/           # App shell and provider composition
-│   ├── data/          # Domain models, preferences, persistence, encryption
-│   ├── l10n/          # Localization (10 languages — see Localization section)
-│   ├── screens/       # Main UI screens
-│   ├── services/      # Authentication, crypto, haptics
-│   ├── state/         # State notifiers and controllers
-│   ├── theme/         # Design tokens (colors, typography, spacing)
-│   ├── widgets/       # Reusable UI components
-│   └── main.dart      # App entry point
-├── test/              # Unit and widget tests (mirrors lib/ layout)
-├── tools/check.sh     # Formatting, analysis, and test checks
-└── pubspec.yaml       # Dart dependencies
+```bash
+adb -s <device-id> install -r <apk-path>
 ```
 
-## Dependencies
+Check the installed and new APK signing certificates with `apksigner verify --print-certs` before upgrading. Avoid `flutter install` on devices with existing data: it can uninstall on a signature mismatch. If `adb install -r` fails, resolve the failure without uninstalling or clearing app data.
 
-Key packages:
+## Code layout
 
-- **`provider`** — State management
-- **`fl_chart`** — Chart rendering
-- **`local_auth`** — Biometric authentication
-- **`biometric_storage`** — Keystore-backed encryption
-- **`flutter_secure_storage`** — Secure key/value storage
-- **`cryptography`** — AES-GCM + PBKDF2 crypto primitives
-- **`web_socket_channel`** — Kraken WS connection
-- **`http`** — REST calls (Kraken OHLC)
-- **`shared_preferences`** — Persistent settings
-- **`path_provider`** — Filesystem paths for cached data
-- **`url_launcher`** — Opening external links
-- **`intl`** — Number / currency formatting
+| Directory | Responsibility |
+| --- | --- |
+| `lib/app/` | App shell and provider ownership; `lib/main.dart` handles startup |
+| `lib/api/` | Kraken WebSocket prices and REST chart history |
+| `lib/data/` | Immutable models, preference groups, JSON codec, storage, and market-history cache/fallback |
+| `lib/state/` | ChangeNotifier controllers for settings, portfolio, converter, live prices, charts, and lock state |
+| `lib/services/` | Authentication, encryption, Android security, images, haptics, and orientation |
+| `lib/screens/`, `lib/widgets/`, `lib/theme/` | Feature UI, shared components, and design tokens |
+| `lib/l10n/` | ARB translations and generated localization sources |
+| `test/` | Unit, widget, storage-compatibility, and visual regression tests |
+| `assets/`, `tools/` | Bundled history, fonts, icons, checks, and asset tooling |
 
-See `pubspec.yaml` for the full list and versions.
+Package versions live in `pubspec.yaml` and `pubspec.lock`.
+
+## Persistence and market data
+
+With lock disabled, stacks are plaintext in SharedPreferences. With lock enabled, the repository stores an AES-256-GCM envelope; PIN-derived keys use Argon2id, and key material is protected by secure storage or a biometric-only Keystore slot. Settings and the locked stack count remain outside the encrypted envelope.
+
+Preserve the flat JSON storage format in `AppStateCodec`. `AppStateRepository` must retain its cached encrypted envelope during locked settings writes and serialize writes in call order. Before clearing the envelope when disabling lock, drain pending saves. Device mode requires an enrolled biometric; a device PIN cannot release its encryption key.
+
+Kraken provides live prices and recent OHLC history. Long-range charts use cached or bundled `assets/btc_history.csv`; bundled `assets/fx_history.csv` supplies historical currency conversion. Refresh the FX asset with `bash tools/fetch_fx_history.sh [START_DATE] [END_DATE]` (requires curl, GNU awk, and GNU date). Review dataset changes before committing. Fetching this asset is development tooling, not an app network request.
 
 ## Localization
 
-User-facing strings live in `lib/l10n/`:
+`lib/l10n/app_en.arb` is the template. Add new user-facing strings there only, unless translations are explicitly requested. Remove deleted keys from every `app_*.arb`; rename keys consistently wherever they exist. Preserve placeholder names, ICU syntax, and metadata. Portuguese copy targets Brazil.
 
-- `app_de.arb` — German
-- `app_en.arb` — English
-- `app_es.arb` — Spanish
-- `app_fr.arb` — French
-- `app_it.arb` — Italian
-- `app_ja.arb` — Japanese
-- `app_pt.arb` — Portuguese
-- `app_ru.arb` — Russian
-- `app_tr.arb` — Turkish
-- `app_vi.arb` — Vietnamese
+Regenerate with `flutter gen-l10n`. Generated Dart files in `lib/l10n/generated/` are ignored and must not be edited manually. Review translated wording, plural output, and narrow-screen layout as well as running checks.
 
-When adding or removing strings, update **every** `.arb` file. Generated Dart sources land in `lib/l10n/generated/` and are refreshed automatically by `flutter pub get` (or `flutter run`); to regenerate explicitly:
+## Pull requests
 
-```bash
-flutter gen-l10n
-```
-
-Don't leave orphaned keys behind when removing user-facing text.
-
-## Gotchas
-
-### Internet permission
-
-`AndroidManifest.xml` must include:
-
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-```
-
-Without it, the Kraken WebSocket silently fails and the price card freezes on cached data — there is no error UI on this path.
-
-### Device-unlock mode on emulators
-
-Device-unlock mode requires an **enrolled biometric**. On an emulator without one:
-
-1. Open **Extended Controls** → **Fingerprint**
-2. Tap "Touch the sensor"
-
-Device-credential fallback (PIN/pattern) is intentionally disabled — see the Security section above.
-
-### Chart fallback
-
-The bundled `assets/btc_history.csv` is the offline fallback for chart ranges when the Kraken OHLC endpoint is unreachable. This is what keeps the "All" view working with no network.
-
-## Issues and pull requests
-
-- File bugs and feature requests at <https://github.com/Max-Hodler/open-bitcoin-tracker/issues>.
-- Search existing issues before opening a new one.
-- For non-trivial changes, open an issue first to discuss the approach.
-
-Before opening a PR, please make sure:
-
-- `bash tools/check.sh` passes
-- Changes follow the project's existing code style and patterns
-- New user-facing strings are added to **every** `.arb` file in `lib/l10n/`
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the project's [MIT License](LICENSE).
+Use [GitHub Issues](https://github.com/Max-Hodler/open-bitcoin-tracker/issues) for bugs and proposals; discuss substantial changes before implementing them. Keep PRs focused, follow existing code patterns, and include relevant validation. Contributions use the [MIT License](LICENSE).

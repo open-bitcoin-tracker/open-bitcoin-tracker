@@ -1,10 +1,11 @@
-Open source bitcoin portfolio tracker.
+Open Bitcoin Tracker is a free, open-source Android app for tracking the value of your bitcoin. Enter holdings manually; OBT does not hold funds, manage keys, or send transactions.
 
 Features:
-- Total privacy: Stacks are entered manually and they never leave your phone. OBT is not a wallet, it's a price tracker.
-- Fast and lightweight: OBT doesn't connect to a node so it loads fast and has minimal battery impact.
-- Handy converter: bitcoin to sats and fiat.
-- Multiple languages and currencies.
-- Light and Dark modes.
-- PIN and biometric lock for your stacks.
-- Historical price charts.
+- Live BTC prices and chart history from Kraken.
+- Named stacks with custom colors or images and a combined portfolio total.
+- Historical value charts with bundled data for offline viewing and future-value projections.
+- A converter for BTC, satoshis, and seven fiat currencies.
+- PIN or biometric stack lock, with encryption when lock is enabled.
+- A full-screen price view, four theme palettes, and ten languages.
+
+Holdings, settings, and stack images stay on your device. No accounts, cloud sync, analytics, or telemetry.

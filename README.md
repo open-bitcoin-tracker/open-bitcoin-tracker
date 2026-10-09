@@ -1,40 +1,31 @@
 # Open Bitcoin Tracker
 
-Open Bitcoin Tracker (OBT) **is not a wallet.** It doesn't send, receive, or hold bitcoin; it's a tracker for long-term hodlers who want to keep an eye on the value of their stacks.
-
-The amount of bitcoin is entered manually, so no public keys are exposed, it has instant startup and minimal battery impact.
-
-Everything is stored on your phone and it's never uploaded anywhere.
-
-Free and open-source Android app.
+Open Bitcoin Tracker (OBT) is a free, open-source Android app for tracking the value of your bitcoin. Enter holdings manually; the app does not hold funds, manage keys, or send transactions.
 
 ## Install
 
-Download the latest APK from the [Releases](https://github.com/Max-Hodler/open-bitcoin-tracker/releases) page and install it on your device. You may need to enable **Install unknown apps** in your Android settings for your browser or file manager.
+Download an APK from [GitHub Releases](https://github.com/Max-Hodler/open-bitcoin-tracker/releases). Enable **Install unknown apps** for your browser or file manager if Android prompts you. To preserve existing app data, upgrade with an APK signed by the same distributor; uninstalling deletes local holdings.
 
 ## Features
 
-- **Live BTC price**: Updated in real time via Kraken WebSocket.
-- **Stacks**: Organize your Bitcoin into multiple labeled portfolios (e.g. "My Wallet", "Kids", "Mum"). Tap a stack to see its historical value and a future-value projection.
-- **Portfolio total**: See the combined value of all your stacks at a glance. Tap it to open the portfolio detail view.
-- **Converter**: Dedicated icon button that instantly converts between BTC, satoshis, and any supported fiat currency using a full numeric keypad.
-- **Bitcoin unit toggle**: Switch between BTC and satoshis display directly from the stacks overflow menu.
-- **Lock**: Protect your holdings with a PIN or device biometrics. Lock and unlock from the stacks title row without leaving the home screen.
-- **Themes**: Light and Dark modes with 4 themes in total.
-- **Languages**: Available in Deutsch, English, Español, Français, Italiano, Português, Türkçe, Tiếng Việt, Русский, and 日本語.
+- Live BTC prices from Kraken, with configurable display update frequency and a full-screen price view.
+- Named stacks with custom colors or images, reordering, and a combined portfolio total.
+- Historical price and stack-value charts, bundled data for offline viewing, and future-value projections.
+- Conversion between BTC, satoshis, and USD, EUR, GBP, AUD, CAD, CHF, or JPY.
+- BTC or satoshi display, PIN or biometric stack lock, and a configurable background lock timeout.
+- System, light, and dark appearance, with two light and two dark palettes.
+- German, English, Spanish, French, Italian, Japanese, Portuguese, Russian, Turkish, and Vietnamese.
 
-## Privacy & security
+## Privacy and security
 
-- **No public keys**: You don't need to enter your bitcoin public keys.
-- **Private viewing**: Lock your stacks with a PIN or biometrics so you can check the price without revealing your holdings.
-- **No accounts, no servers.** The app fetches the current bitcoin price from Kraken and nothing else. There's no login, no cloud sync, no analytics, and no telemetry.
-- **No tracking.** The app does not collect, transmit, or share any personal information.
+Holdings, settings, and stack images stay on your device. There are no accounts, cloud sync, analytics, or telemetry, and no public keys are required. Network requests fetch live prices and chart history from Kraken; bundled Bitcoin and exchange-rate history support offline charts. Links in the About screen open in your browser.
 
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+Enabling stack lock encrypts holdings with AES-256-GCM. PIN protection uses Argon2id; biometric access uses Android Keystore. Holdings are stored unencrypted when lock is disabled. Android backup is disabled, and enabling lock also blocks screenshots and screen capture.
 
 ## Contributing
 
-Bug reports, suggestions, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and project structure.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks, and builds. Report bugs and suggest features in [GitHub Issues](https://github.com/Max-Hodler/open-bitcoin-tracker/issues).
+
+## License
+
+[MIT](LICENSE).

@@ -57,8 +57,8 @@ app.*.map.json
 .claude/
 
 # Local-only contributor/AI guidance files
-CLAUDE.md
-AGENTS.md
+/agents.md
+/AGENTS.md
 /lib/l10n/TRANSLATING.md
 
 

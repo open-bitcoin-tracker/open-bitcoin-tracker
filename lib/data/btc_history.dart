@@ -14,9 +14,11 @@ List<HistoryPoint> _parseHistoryCsv(String raw) {
   for (final line in lines) {
     final parts = line.trim().split(',');
     if (parts.length < 2) continue;
-    final date = DateTime.tryParse(parts[0]);
+    final date = DateTime.tryParse('${parts[0]}T00:00:00Z');
     final price = double.tryParse(parts[1]);
-    if (date == null || price == null || price <= 0) continue;
+    if (date == null || price == null || !price.isFinite || price <= 0) {
+      continue;
+    }
     out.add(HistoryPoint(date.millisecondsSinceEpoch, price));
   }
   return out;

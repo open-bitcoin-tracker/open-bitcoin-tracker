@@ -69,7 +69,9 @@ With lock disabled, stacks are plaintext in SharedPreferences. With lock enabled
 
 Preserve the flat JSON storage format in `AppStateCodec`. `AppStateRepository` must retain its cached encrypted envelope during locked settings writes and serialize writes in call order. Before clearing the envelope when disabling lock, drain pending saves. Device mode requires an enrolled biometric; a device PIN cannot release its encryption key.
 
-Kraken provides live prices and recent OHLC history. Long-range charts use cached or bundled `assets/btc_history.csv`; bundled `assets/fx_history.csv` supplies historical currency conversion. Refresh the FX asset with `bash tools/fetch_fx_history.sh [START_DATE] [END_DATE]` (requires curl, GNU awk, and GNU date). Review dataset changes before committing. Fetching this asset is development tooling, not an app network request.
+Kraken provides live prices and recent OHLC history. Long-range charts merge `assets/btc_history.csv` with cached history on every refresh. Bundled dates replace cached values for those dates, cached days outside bundle coverage are retained, and fresh Kraken prices take precedence over both. The merged history is saved even when Kraken is unavailable. Both CSV loaders interpret dates as UTC; chart windows, axes, and conversions derive from the loaded points without fixed end dates or row counts.
+
+Bundled `assets/fx_history.csv` supplies historical currency conversion. Each point uses the latest reference rate on or before its UTC date; weekends and holidays carry the preceding rate, and dates beyond FX coverage retain the final known rate. Update both assets together when extending offline history, and rebuild the app to ship them. Refresh the FX asset with `bash tools/fetch_fx_history.sh [START_DATE] [END_DATE]` (requires curl, GNU awk, and GNU date). Review dataset changes before committing. Fetching this asset is development tooling, not an app network request.
 
 ## Localization
 

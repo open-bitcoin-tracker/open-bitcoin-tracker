@@ -70,12 +70,12 @@ FxHistory _parseFxCsv(String raw) {
   for (final line in lines) {
     final parts = line.trim().split(',');
     if (parts.length < _fxColumns.length + 1) continue;
-    final date = DateTime.tryParse(parts[0]);
+    final date = DateTime.tryParse('${parts[0]}T00:00:00Z');
     if (date == null) continue; // skips the header row
     final timeMs = date.millisecondsSinceEpoch;
     for (var i = 0; i < _fxColumns.length; i++) {
       final rate = double.tryParse(parts[i + 1]);
-      if (rate == null || rate <= 0) continue;
+      if (rate == null || !rate.isFinite || rate <= 0) continue;
       final c = _fxColumns[i];
       days[c]!.add(timeMs);
       rates[c]!.add(rate);

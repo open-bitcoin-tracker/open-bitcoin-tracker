@@ -31,7 +31,7 @@
 # USAGE
 #   tools/fetch_fx_history.sh [START_DATE] [END_DATE]
 #   Defaults: START_DATE=2010-07-18 (start of btc_history.csv),
-#             END_DATE=today. Dates are ISO (YYYY-MM-DD).
+#             END_DATE=today (UTC). Dates are ISO (YYYY-MM-DD).
 #
 #   Set FX_OUT to write somewhere other than assets/fx_history.csv — useful for
 #   a dry run that must not clobber the bundled asset, e.g.
@@ -46,7 +46,21 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="${FX_OUT:-$REPO_ROOT/assets/fx_history.csv}"
 
 START_DATE="${1:-2010-07-18}"
-END_DATE="${2:-$(date +%F)}"
+END_DATE="${2:-$(date -u +%F)}"
+
+for value in "$START_DATE" "$END_DATE"; do
+  if [[ ! "$value" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] ||
+     [[ "$(date -u -d "$value" +%F)" != "$value" ]]; then
+    echo "Invalid ISO date: $value" >&2
+    exit 1
+  fi
+done
+if [[ "$START_DATE" > "$END_DATE" ]]; then
+  echo "START_DATE must not follow END_DATE" >&2
+  exit 1
+fi
+# Seed a weekend/holiday start with the preceding published reference rate.
+QUERY_START="$(date -u -d "$START_DATE 7 days ago" +%F)"
 
 # Output column order after `date`. USD is omitted (always 1.0). Must stay in
 # sync with `_fxColumns` in lib/data/fx_history.dart.
@@ -58,10 +72,10 @@ ECB_URL="https://data-api.ecb.europa.eu/service/data/EXR/D.USD+GBP+JPY+CAD+AUD+C
 # --- fetch ------------------------------------------------------------------
 echo "Fetching ECB reference rates ${START_DATE} .. ${END_DATE} ..." >&2
 RAW="$(mktemp)"
-trap 'rm -f "$RAW"' EXIT
+trap 'rm -f "$RAW" "$OUT.tmp"' EXIT
 
 curl -fsS \
-  "${ECB_URL}?startPeriod=${START_DATE}&endPeriod=${END_DATE}&format=csvdata" \
+  "${ECB_URL}?startPeriod=${QUERY_START}&endPeriod=${END_DATE}&format=csvdata" \
   -o "$RAW"
 
 # --- transform --------------------------------------------------------------
@@ -69,14 +83,14 @@ curl -fsS \
 #   CURRENCY (col 3), TIME_PERIOD (col 7), OBS_VALUE (col 8).
 # awk pivots that into one row per date with all 6 EUR-> rates, derives the
 # USD-> cross-rates, then forward-fills across every calendar day in range.
-awk -v start="$START_DATE" -v end="$END_DATE" '
+awk -v seed="$QUERY_START" -v start="$START_DATE" -v end="$END_DATE" '
   BEGIN { FS=","; OFS="," }
 
   # Convert a YYYY-MM-DD date to a day count for iteration via mktime.
   function epoch_day(d,    y,m,dd,spec) {
     y = substr(d,1,4); m = substr(d,6,2); dd = substr(d,9,2)
     spec = y " " m " " dd " 12 0 0"
-    return int(mktime(spec) / 86400)
+    return int(mktime(spec, 1) / 86400)
   }
   function day_to_date(n,    s) {
     s = strftime("%Y-%m-%d", n*86400 + 43200, 1)
@@ -95,7 +109,7 @@ awk -v start="$START_DATE" -v end="$END_DATE" '
     ncols = split("EUR GBP AUD CAD CHF JPY", out, " ")
     print "date,EUR,GBP,AUD,CAD,CHF,JPY"
 
-    sd = epoch_day(start); ed = epoch_day(end)
+    sd = epoch_day(seed); ed = epoch_day(end)
     # `have_*` holds the last known value for forward-fill.
     for (d = sd; d <= ed; d++) {
       day = day_to_date(d)
@@ -108,13 +122,18 @@ awk -v start="$START_DATE" -v end="$END_DATE" '
           c = out[i]
           if (c == "EUR") continue
           v = eur[day "," c]
-          if (v != "" && v > 0) last[c] = v / eurUsd
+          if (v == "" || v <= 0) {
+            print "Incomplete ECB rates on " day > "/dev/stderr"
+            exit 1
+          }
+          last[c] = v / eurUsd
         }
       }
-      # Emit only once we have a full set (guards the very first days if the
-      # range start predates the first ECB observation — should not happen for
-      # 2010+, but keeps the output well-formed if it does).
-      if (last["EUR"] == "") continue
+      if (day < start) continue
+      if (last["EUR"] == "") {
+        print "No preceding ECB reference rates for " day > "/dev/stderr"
+        exit 1
+      }
       line = day
       for (i = 1; i <= ncols; i++) line = line OFS sprintf("%.6f", last[out[i]])
       print line

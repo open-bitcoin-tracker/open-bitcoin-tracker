@@ -1,0 +1,3 @@
+- Updated bundled Bitcoin and currency history.
+- App updates now merge newer bundled history with saved chart data, including offline.
+- Corrected UTC date handling for historical prices and currency conversions.

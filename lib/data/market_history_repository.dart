@@ -87,14 +87,16 @@ class MarketHistoryRepository extends ChangeNotifier {
       if (kDebugMode) debugPrint('History cache unavailable: $error');
     }
     if (_disposed) return;
-    if (base.isEmpty) {
-      try {
-        base = await _loadBundled();
-      } on Object catch (error) {
-        if (kDebugMode) debugPrint('Bundled history unavailable: $error');
-      }
-      if (_disposed) return;
+    // A new release can extend or correct the bundle even when an older
+    // installation already has a cache. Bundled dates take precedence; retain
+    // cached days beyond the bundle and inside any gaps. Fresh Kraken data
+    // takes precedence over both below.
+    try {
+      base = _mergeByDay(base, await _loadBundled());
+    } on Object catch (error) {
+      if (kDebugMode) debugPrint('Bundled history unavailable: $error');
     }
+    if (_disposed) return;
     if (base.isNotEmpty) {
       _allHistory = List.unmodifiable(base);
       notifyListeners();
@@ -108,29 +110,32 @@ class MarketHistoryRepository extends ChangeNotifier {
         ? null
         : (_now().millisecondsSinceEpoch ~/ 1000) - (fetchDays + 1) * 86400;
     final recent = await _ohlc.daily(sinceTs: sinceTs);
-    if (_disposed || recent == null || recent.isEmpty) return;
-    _allHistory = List.unmodifiable(_mergeByDay(base, recent));
-    lastHistoryFetchedAt = _now();
-    notifyListeners();
-    try {
-      await _cache.save(_allHistory);
-    } on Object catch (error) {
-      // A failed optional cache write must not discard usable in-memory data.
-      if (kDebugMode) debugPrint('History cache write failed: $error');
+    if (_disposed) return;
+    if (recent != null && recent.isNotEmpty) {
+      _allHistory = List.unmodifiable(_mergeByDay(base, recent));
+      lastHistoryFetchedAt = _now();
+      notifyListeners();
+    }
+    // Persist bundle repairs even offline; a failed optional write must not
+    // discard usable in-memory history.
+    if (_allHistory.isNotEmpty) {
+      try {
+        await _cache.save(_allHistory);
+      } on Object catch (error) {
+        if (kDebugMode) debugPrint('History cache write failed: $error');
+      }
     }
   }
 
   static List<HistoryPoint> _mergeByDay(
     List<HistoryPoint> base,
-    List<HistoryPoint> recent,
+    List<HistoryPoint> incoming,
   ) {
     const dayMs = 86400000;
     final byDay = <int, double>{};
-    for (final p in recent) {
+    for (final p in [...base, ...incoming]) {
+      if (!p.priceUsd.isFinite || p.priceUsd <= 0) continue;
       byDay[(p.timeMs ~/ dayMs) * dayMs] = p.priceUsd;
-    }
-    for (final p in base) {
-      byDay.putIfAbsent((p.timeMs ~/ dayMs) * dayMs, () => p.priceUsd);
     }
     final keys = byDay.keys.toList()..sort();
     return [for (final k in keys) HistoryPoint(k, byDay[k]!)];

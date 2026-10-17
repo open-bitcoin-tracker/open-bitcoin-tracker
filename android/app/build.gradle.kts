@@ -77,6 +77,8 @@ android {
             //   flutter build appbundle --release \
             //     --target-platform android-arm,android-arm64
             ndk {
+                // Replace Flutter defaults, which also include x86_64.
+                abiFilters.clear()
                 abiFilters += listOf("armeabi-v7a", "arm64-v8a")
             }
         }

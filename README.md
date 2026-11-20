@@ -4,7 +4,7 @@ Open Bitcoin Tracker (OBT) is a free, open-source Android app for tracking the v
 
 ## Install
 
-Download an APK from [GitHub Releases](https://github.com/Max-Hodler/open-bitcoin-tracker/releases). Enable **Install unknown apps** for your browser or file manager if Android prompts you. To preserve existing app data, upgrade with an APK signed by the same distributor; uninstalling deletes local holdings.
+Download an APK from [GitHub Releases](https://github.com/open-bitcoin-tracker/open-bitcoin-tracker/releases). Enable **Install unknown apps** for your browser or file manager if Android prompts you. To preserve existing app data, upgrade with an APK signed by the same distributor; uninstalling deletes local holdings.
 
 ## Features
 
@@ -24,7 +24,7 @@ Enabling stack lock encrypts holdings with AES-256-GCM. PIN protection uses Argo
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks, and builds. Report bugs and suggest features in [GitHub Issues](https://github.com/Max-Hodler/open-bitcoin-tracker/issues).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks, and builds. Report bugs and suggest features in [GitHub Issues](https://github.com/open-bitcoin-tracker/open-bitcoin-tracker/issues).
 
 ## License
 

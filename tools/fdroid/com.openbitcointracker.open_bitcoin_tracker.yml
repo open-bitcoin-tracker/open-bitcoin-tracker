@@ -3,11 +3,11 @@ Categories:
 License: MIT
 AuthorName: Max-Hodler
 WebSite: https://openbitcointracker.com
-SourceCode: https://github.com/Max-Hodler/open-bitcoin-tracker
-IssueTracker: https://github.com/Max-Hodler/open-bitcoin-tracker/issues
+SourceCode: https://github.com/open-bitcoin-tracker/open-bitcoin-tracker
+IssueTracker: https://github.com/open-bitcoin-tracker/open-bitcoin-tracker/issues
 
 RepoType: git
-Repo: https://github.com/Max-Hodler/open-bitcoin-tracker
+Repo: https://github.com/open-bitcoin-tracker/open-bitcoin-tracker
 
 Builds:
   - versionName: 1.0.0

@@ -15,7 +15,7 @@ import 'settings/settings_widgets.dart';
 const String _kWebsiteUrl = 'https://openbitcointracker.com';
 const String _kPrivacyPolicyUrl = 'https://openbitcointracker.com/privacy/';
 const String _kSourceCodeUrl =
-    'https://github.com/Max-Hodler/open-bitcoin-tracker';
+    'https://github.com/open-bitcoin-tracker/open-bitcoin-tracker';
 const String _kKrakenUrl = 'https://www.kraken.com';
 const String _kCoinMetricsUrl = 'https://coinmetrics.io';
 const String _kEcbUrl =

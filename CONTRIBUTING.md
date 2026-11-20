@@ -81,4 +81,4 @@ Regenerate with `flutter gen-l10n`. Generated Dart files in `lib/l10n/generated/
 
 ## Pull requests
 
-Use [GitHub Issues](https://github.com/Max-Hodler/open-bitcoin-tracker/issues) for bugs and proposals; discuss substantial changes before implementing them. Keep PRs focused, follow existing code patterns, and include relevant validation. Contributions use the [MIT License](LICENSE).
+Use [GitHub Issues](https://github.com/open-bitcoin-tracker/open-bitcoin-tracker/issues) for bugs and proposals; discuss substantial changes before implementing them. Keep PRs focused, follow existing code patterns, and include relevant validation. Contributions use the [MIT License](LICENSE).

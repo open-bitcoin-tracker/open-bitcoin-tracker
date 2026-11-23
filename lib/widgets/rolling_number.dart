@@ -87,11 +87,17 @@ class RollingNumber extends StatelessWidget {
     final shiftY = cellHeight / 2 - (baseline - capHeight / 2);
 
     final children = <Widget>[];
+    var place = 0;
+    for (var i = 0; i < text.length; i++) {
+      final code = text.codeUnitAt(i);
+      if (code >= 0x30 && code <= 0x39) place++;
+    }
     for (var i = 0; i < text.length; i++) {
       final ch = text[i];
       final code = ch.codeUnitAt(0);
       final isDigit = code >= 0x30 && code <= 0x39;
       if (isDigit) {
+        place--;
         children.add(
           _RollingDigit(
             digit: code - 0x30,
@@ -100,10 +106,11 @@ class RollingNumber extends StatelessWidget {
             style: style,
             duration: duration,
             curve: curve,
-            // Position-based key so digit identity stays stable across rebuilds
-            // (otherwise the comma shifting would re-key every digit and reset
-            // the rolling state).
-            key: ValueKey('digit-$i'),
+            // Keyed by place value from the right (units = 0), so each digit
+            // keeps its strip when separators move or the price gains a digit
+            // ($99,999 → $100,000) instead of every digit re-pairing with its
+            // left-hand neighbour.
+            key: ValueKey('digit-$place'),
           ),
         );
       } else {
@@ -155,24 +162,15 @@ class _RollingDigitState extends State<_RollingDigit>
     duration: widget.duration,
   );
 
-  // Strip of digits rendered top-to-bottom this roll. For up-roll the strip
-  // is [old, ..., new] and the window walks from index 0 → last (digits slide
-  // upward, new digit enters from below). For down-roll the strip is reversed
-  // to [new, ..., old] and the window walks from last → 0 (digits slide
-  // downward, new digit enters from above).
-  late List<int> _strip;
-  // Index in _strip where the roll starts (0 for up, length-1 for down).
-  late int _startIndex;
-  // Index in _strip where the roll ends.
-  late int _endIndex;
+  // The strip position, in digit steps along an endless 0–9 tape: the digit
+  // shown is `position mod 10`. A roll eases from [_from] to [_to]; rolling up
+  // increases the position (digits slide upward, the new digit enters from
+  // below) and rolling down decreases it (the new digit enters from above).
+  late double _from = widget.digit.toDouble();
+  late double _to = _from;
 
-  @override
-  void initState() {
-    super.initState();
-    _strip = [widget.digit];
-    _startIndex = 0;
-    _endIndex = 0;
-  }
+  double get _position =>
+      _from + (_to - _from) * widget.curve.transform(_controller.value);
 
   @override
   void didUpdateWidget(covariant _RollingDigit old) {
@@ -190,59 +188,30 @@ class _RollingDigitState extends State<_RollingDigit>
         _runRoll(old.digit, widget.digit, widget.direction);
       } else {
         _controller.stop();
-        setState(() {
-          _strip = [widget.digit];
-          _startIndex = 0;
-          _endIndex = 0;
-        });
+        setState(() => _from = _to = widget.digit.toDouble());
       }
     }
   }
 
   void _runRoll(int oldDigit, int newDigit, int direction) {
-    final seq = <int>[oldDigit];
-    if (direction >= 0) {
-      var d = oldDigit;
-      while (d != newDigit) {
-        d = (d + 1) % 10;
-        seq.add(d);
-      }
-    } else {
-      var d = oldDigit;
-      while (d != newDigit) {
-        d = (d + 9) % 10;
-        seq.add(d);
-      }
-    }
-
-    final List<int> strip;
-    final int startIdx;
-    final int endIdx;
-    if (direction >= 0) {
-      strip = seq;
-      startIdx = 0;
-      endIdx = seq.length - 1;
-    } else {
-      strip = seq.reversed.toList();
-      startIdx = strip.length - 1;
-      endIdx = 0;
-    }
-
+    final steps = direction >= 0
+        ? (newDigit - oldDigit) % 10
+        : -((oldDigit - newDigit) % 10);
+    // Start from where the strip is right now, so a tick that lands mid-roll
+    // carries on smoothly instead of snapping to the previous target first.
+    // The previous target already shows oldDigit, so stepping from it lands
+    // exactly on newDigit.
     setState(() {
-      _strip = strip;
-      _startIndex = startIdx;
-      _endIndex = endIdx;
+      _from = _position;
+      _to += steps;
     });
     _controller
       ..stop()
       ..value = 0
       ..forward().whenComplete(() {
         if (!mounted) return;
-        setState(() {
-          _strip = [newDigit];
-          _startIndex = 0;
-          _endIndex = 0;
-        });
+        // Settle back near zero so the tape never drifts far over a session.
+        setState(() => _from = _to = newDigit.toDouble());
       });
   }
 
@@ -271,22 +240,24 @@ class _RollingDigitState extends State<_RollingDigit>
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, _) {
-            final t = widget.curve.transform(_controller.value);
-            final pos = _startIndex + (_endIndex - _startIndex) * t;
+            final pos = _position;
+            // Only the stretch of tape this roll crosses is built.
+            final first = (_from < _to ? _from : _to).floor();
+            final last = (_from < _to ? _to : _from).ceil();
             final strip = OverflowBox(
               minHeight: 0,
               maxHeight: double.infinity,
               alignment: Alignment.topLeft,
               child: Transform.translate(
-                offset: Offset(0, -pos * cellHeight + shiftY),
+                offset: Offset(0, -(pos - first) * cellHeight + shiftY),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    for (final d in _strip)
+                    for (var i = first; i <= last; i++)
                       SizedBox(
                         height: cellHeight,
                         width: cellWidth,
-                        child: Text('$d', style: widget.style),
+                        child: Text('${i % 10}', style: widget.style),
                       ),
                   ],
                 ),
